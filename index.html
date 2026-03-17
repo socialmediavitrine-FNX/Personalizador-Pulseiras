@@ -177,19 +177,19 @@
     }
 
     // --- FUNÇÕES DE EDIÇÃO ---
-    function addPulseira(tipo) {
-        const arquivoSVG = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
-        fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
-            const p = fabric.util.groupSVGElements(objects, options);
-            p.set({
-                left: 120, top: 0, isPulseira: true, tipoRef: tipo,
-                hasControls: false, lockMovementX: true, lockMovementY: true
-            });
-            p.scaleToWidth((tipo === 'adulto') ? 780 : 660);
-            canvas.add(p).sendToBack();
-            reestruturarAmbiente();
-        });
-    }
+function addPulseira(tipo) {
+    // Verifique se aqui NÃO tem o nome da pasta antiga. Deve ser apenas o nome do arquivo.
+    const arquivoSVG = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+    
+    fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
+        if (!objects) {
+            console.error("Erro: O arquivo " + arquivoSVG + " não foi encontrado na raiz!");
+            return;
+        }
+        const p = fabric.util.groupSVGElements(objects, options);
+        // ... resto do código
+    });
+}}
 
     function reestruturarAmbiente() {
         const pulseiras = canvas.getObjects().filter(obj => obj.isPulseira);
