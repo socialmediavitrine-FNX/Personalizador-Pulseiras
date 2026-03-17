@@ -76,7 +76,7 @@
         preserveObjectStacking: true 
     });
 
-    // PANNING (ALT + CLICK)
+    // PANNING & ZOOM
     let isDragging = false, lastPosX, lastPosY;
     canvas.on('mouse:down', function(opt) {
         if (opt.e.altKey) {
@@ -110,14 +110,17 @@
         canvas.setZoom(zoom);
     }
 
-    // FUNÇÕES DE PULSEIRA - AGORA COM PULSEIRA-V2.SVG
+    // FUNÇÃO PARA ADICIONAR PULSEIRA - USANDO PULSEIRA-V2.SVG
     function addPulseira(tipo) {
-        // Atualizado para buscar o novo nome que você colocou no GitHub
-        const file = (tipo === 'adulto') ? 'pulseira-v2.svg' : 'pulseira-infantil.svg';
+        // O sufixo ?t= ajuda a burlar o cache do navegador
+        const timestamp = new Date().getTime();
+        const file = (tipo === 'adulto') ? `pulseira-v2.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
         
+        console.log("Tentando carregar arquivo:", file);
+
         fabric.loadSVGFromURL(file, function(objects, options) {
             if (!objects || objects.length === 0) {
-                alert("O arquivo " + file + " ainda não está disponível no servidor. Tente novamente em 30 segundos.");
+                alert("O arquivo da pulseira ainda não foi processado pelo GitHub. Aguarde 30 segundos e tente novamente.");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
@@ -129,15 +132,15 @@
             pulseira.scaleToWidth((tipo === 'adulto') ? 800 : 650);
             canvas.add(pulseira).sendToBack();
             reorganizar();
-        });
+        }, { crossOrigin: 'anonymous' });
     }
 
     function reorganizar() {
-        const pS = canvas.getObjects().filter(o => o.isPulseira);
+        const pulseiras = canvas.getObjects().filter(o => o.isPulseira);
         let currentY = 50;
-        pS.forEach(p => {
+        pulseiras.forEach(p => {
             p.set({ top: currentY }).setCoords();
-            currentY += 320; // Espaço entre pulseiras
+            currentY += 320; 
         });
         canvas.setHeight(Math.max(500, currentY + 50));
         canvas.renderAll();
@@ -156,7 +159,7 @@
     }
 
     function addTexto() {
-        canvas.add(new fabric.IText('Texto Aqui', { left: 150, top: 100, fontSize: 30, fill: '#000' }));
+        canvas.add(new fabric.IText('Seu Texto', { left: 150, top: 100, fontSize: 30, fill: '#000', fontFamily: 'Inter' }));
     }
 
     function removerSelecionado() {
@@ -176,7 +179,7 @@
     function saveManual() {
         const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef']));
         localStorage.setItem('vitrine_manual_save', json);
-        alert("Progresso salvo com sucesso!");
+        alert("Arte salva com sucesso!");
     }
 
     function loadManual() {
@@ -192,7 +195,7 @@
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'minha-arte.png';
+        link.download = 'minha-arte-vitrine.png';
         link.href = dataURL;
         link.click();
     }
