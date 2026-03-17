@@ -110,20 +110,28 @@
         canvas.setZoom(zoom);
     }
 
-    // FUNÇÃO PARA ADICIONAR PULSEIRA - USANDO PULSEIRA-V2.SVG
-    function addPulseira(tipo) {
-        // O sufixo ?t= ajuda a burlar o cache do navegador
+function addPulseira(tipo) {
         const timestamp = new Date().getTime();
         const file = (tipo === 'adulto') ? `pulseira-v2.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
         
-        console.log("Tentando carregar arquivo:", file);
-
         fabric.loadSVGFromURL(file, function(objects, options) {
             if (!objects || objects.length === 0) {
-                alert("O arquivo da pulseira ainda não foi processado pelo GitHub. Aguarde 30 segundos e tente novamente.");
+                alert("Erro ao carregar o arquivo.");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
+            
+            // --- COMANDO NOVO PARA FORÇAR A VISIBILIDADE ---
+            pulseira.getObjects().forEach(obj => {
+                // Se o objeto estiver sem cor ou transparente, pintamos de cinza claro para teste
+                if (!obj.fill || obj.fill === 'none' || obj.fill === 'transparent') {
+                    obj.set('fill', '#cccccc'); 
+                }
+                obj.set('stroke', '#000000'); // Adiciona uma borda preta fina para garantir que vemos o contorno
+                obj.set('strokeWidth', 0.5);
+            });
+            // ----------------------------------------------
+
             pulseira.set({
                 left: 100, top: 50,
                 isPulseira: true, tipoRef: tipo,
