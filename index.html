@@ -123,10 +123,13 @@
     function adjustZoom(d) { let n = canvas.getZoom() + d; if (n>3) n=3; if (n<0.5) n=0.5; setZoom(n); }
 
     // PULSEIRAS
-    function addPulseira(tipo) {
+function addPulseira(tipo) {
         const arquivoSVG = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
         fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
-            if (!objects) return;
+            if (!objects || objects.length === 0) {
+                console.error("Erro ao carregar SVG");
+                return;
+            }
             const p = fabric.util.groupSVGElements(objects, options);
             p.set({
                 left: 120, top: 40, isPulseira: true, tipoRef: tipo,
@@ -154,7 +157,6 @@
         canvas.setHeight(Math.max(500, y + 50));
         canvas.renderAll();
     }
-
     // CUSTOMIZAR
     function mudarCor(c) {
         canvas.getActiveObjects().forEach(o => {
