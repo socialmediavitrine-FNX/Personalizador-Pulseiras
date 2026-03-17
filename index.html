@@ -114,7 +114,7 @@
     // FUNÇÕES DE PULSEIRA
 function addPulseira(tipo) {
         // O '+ "?v=" + new Date().getTime()' impede o cache viciado
-        const file = ((tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg') + "?v=" + new Date().getTime();
+        const file = ((tipo === 'adulto') ? 'pulseira-v2.svg' : 'pulseira-infantil.svg') + "?v=" + new Date().getTime();
         
         fabric.loadSVGFromURL(file, function(objects, options) {
             if (!objects || objects.length === 0) {
