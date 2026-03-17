@@ -9,39 +9,26 @@
     <style>
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --danger: #ef4444; --success: #22c55e; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* HEADER */
         .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 20; }
         .brand-logo img { height: 45px; display: block; }
         .brand-contacts { display: flex; gap: 15px; align-items: center; }
         .contact-unit { display: flex; flex-direction: column; align-items: flex-end; }
         .contact-label { font-size: 9px; text-transform: uppercase; opacity: 0.8; font-weight: bold; margin-bottom: 2px; }
         .contact-link { color: white; text-decoration: none; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 15px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-
-        /* TOOLBAR */
         .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; z-index: 10; }
         .group { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #eee; padding-right: 12px; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
-        
         .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn:hover { background: #f8f9fa; }
         .btn-add { background: var(--primary); color: white; border: none; }
-        
-        /* ZOOM & PAN */
         .zoom-control { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 5px 15px; border-radius: 20px; border: 1px solid #ddd; }
-        .canvas-container { cursor: default; }
-        .grabbing { cursor: grabbing !important; }
-
-        /* WORKSPACE */
         .workspace { flex: 1; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #cbd5e1; position: relative; }
         canvas { box-shadow: 0 0 25px rgba(0,0,0,0.15); background-color: white; }
-        
-        /* FOOTER */
         .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; z-index: 20; }
         .btn-save { background: #0ea5e9; color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
         .btn-final { background: var(--success); color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        
         .hint { position: absolute; bottom: 10px; left: 10px; font-size: 11px; color: #64748b; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 4px; pointer-events: none; }
+        .grabbing { cursor: grabbing !important; }
     </style>
 </head>
 <body>
@@ -103,93 +90,54 @@
         preserveObjectStacking: true
     });
 
-    // --- ARRASTAR TELA (PANNING) ---
-    let isDragging = false;
-    let lastPosX, lastPosY;
-
+    // PANNING
+    let isDragging = false, lastPosX, lastPosY;
     canvas.on('mouse:down', function(opt) {
         if (opt.e.altKey) {
             isDragging = true;
             canvas.selection = false;
-            lastPosX = opt.e.clientX;
-            lastPosY = opt.e.clientY;
+            lastPosX = opt.e.clientX; lastPosY = opt.e.clientY;
             canvas.getElement().parentNode.classList.add('grabbing');
         }
     });
-
     canvas.on('mouse:move', function(opt) {
         if (isDragging) {
             let vpt = canvas.viewportTransform;
             vpt[4] += opt.e.clientX - lastPosX;
             vpt[5] += opt.e.clientY - lastPosY;
             canvas.requestRenderAll();
-            lastPosX = opt.e.clientX;
-            lastPosY = opt.e.clientY;
+            lastPosX = opt.e.clientX; lastPosY = opt.e.clientY;
         }
     });
-
     canvas.on('mouse:up', function() {
-        isDragging = false;
-        canvas.selection = true;
+        isDragging = false; canvas.selection = true;
         canvas.getElement().parentNode.classList.remove('grabbing');
     });
-
     canvas.on('mouse:dblclick', function() {
-        canvas.setZoom(1);
-        canvas.viewportTransform[4] = 0;
-        canvas.viewportTransform[5] = 0;
-        canvas.renderAll();
-        document.getElementById('zoomRange').value = 1;
+        canvas.setZoom(1); canvas.viewportTransform[4] = 0; canvas.viewportTransform[5] = 0;
+        canvas.renderAll(); document.getElementById('zoomRange').value = 1;
     });
 
-    // --- AUTO-SAVE ---
-    function saveProject() {
-        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda']));
-        localStorage.setItem('vitrine_save', json);
-    }
+    // ZOOM
+    function setZoom(v) { canvas.setZoom(parseFloat(v)); document.getElementById('zoomRange').value = v; }
+    function adjustZoom(d) { let n = canvas.getZoom() + d; if (n>3) n=3; if (n<0.5) n=0.5; setZoom(n); }
 
-    function loadProject() {
-        const saved = localStorage.getItem('vitrine_save');
-        if (saved) {
-            canvas.loadFromJSON(saved, () => {
-                canvas.renderAll();
-                reestruturarAmbiente();
+    // PULSEIRAS
+    function addPulseira(tipo) {
+        const arquivoSVG = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+        fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
+            if (!objects) return;
+            const p = fabric.util.groupSVGElements(objects, options);
+            p.set({
+                left: 120, top: 40, isPulseira: true, tipoRef: tipo,
+                hasControls: false, lockMovementX: true, lockMovementY: true
             });
-        } else {
-            addPulseira('adulto');
-        }
+            p.scaleToWidth((tipo === 'adulto') ? 780 : 660);
+            canvas.add(p).sendToBack();
+            reestruturarAmbiente();
+            saveProject();
+        });
     }
-
-    canvas.on('object:modified', saveProject);
-    canvas.on('object:added', saveProject);
-    canvas.on('object:removed', saveProject);
-
-    // --- ZOOM ---
-    function setZoom(value) {
-        canvas.setZoom(parseFloat(value));
-        document.getElementById('zoomRange').value = value;
-    }
-
-    function adjustZoom(delta) {
-        let n = canvas.getZoom() + delta;
-        if (n > 3) n = 3; if (n < 0.5) n = 0.5;
-        setZoom(n);
-    }
-
-    // --- FUNÇÕES DE EDIÇÃO ---
-function addPulseira(tipo) {
-    // Verifique se aqui NÃO tem o nome da pasta antiga. Deve ser apenas o nome do arquivo.
-    const arquivoSVG = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
-    
-    fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
-        if (!objects) {
-            console.error("Erro: O arquivo " + arquivoSVG + " não foi encontrado na raiz!");
-            return;
-        }
-        const p = fabric.util.groupSVGElements(objects, options);
-        // ... resto do código
-    });
-}}
 
     function reestruturarAmbiente() {
         const pulseiras = canvas.getObjects().filter(obj => obj.isPulseira);
@@ -200,14 +148,14 @@ function addPulseira(tipo) {
             const txt = new fabric.Text(p.tipoRef.toUpperCase(), {
                 left: 25, top: y + 10, fontSize: 11, fill: '#94a3b8', selectable: false, isLegenda: true, fontWeight: 'bold'
             });
-            canvas.add(txt);
-            txt.sendToBack();
+            canvas.add(txt).sendToBack();
             y += 320;
         });
         canvas.setHeight(Math.max(500, y + 50));
         canvas.renderAll();
     }
 
+    // CUSTOMIZAR
     function mudarCor(c) {
         canvas.getActiveObjects().forEach(o => {
             if (o.type === 'i-text') o.set('fill', c);
@@ -216,8 +164,7 @@ function addPulseira(tipo) {
                 else o.set('fill', c);
             }
         });
-        canvas.renderAll();
-        saveProject();
+        canvas.renderAll(); saveProject();
     }
 
     function addTexto() {
@@ -230,8 +177,7 @@ function addPulseira(tipo) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 fabric.Image.fromURL(e.target.result, img => {
-                    img.scaleToWidth(100);
-                    canvas.add(img).setActiveObject(img);
+                    img.scaleToWidth(100); canvas.add(img).setActiveObject(img);
                 });
             };
             reader.readAsDataURL(input.files[0]);
@@ -240,22 +186,36 @@ function addPulseira(tipo) {
 
     function removerSelecionado() {
         canvas.getActiveObjects().forEach(o => canvas.remove(o));
-        canvas.discardActiveObject();
-        reestruturarAmbiente();
+        canvas.discardActiveObject(); reestruturarAmbiente(); saveProject();
+    }
+
+    // ARQUIVOS
+    function saveProject() {
+        localStorage.setItem('vitrine_save', JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda'])));
+    }
+
+    function loadProject() {
+        const saved = localStorage.getItem('vitrine_save');
+        if (saved) {
+            canvas.loadFromJSON(saved, () => {
+                canvas.renderAll(); reestruturarAmbiente();
+            });
+        } else {
+            addPulseira('adulto');
+        }
     }
 
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'arte-vitrine.png';
-        link.href = dataURL;
-        link.click();
+        link.download = 'arte-vitrine.png'; link.href = dataURL; link.click();
     }
 
     function enviarWhatsApp() {
         window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Enviei minha arte pelo simulador.`);
     }
 
+    canvas.on('object:modified', saveProject);
     loadProject();
 </script>
 </body>
