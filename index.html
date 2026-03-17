@@ -7,61 +7,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Impact&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --vitrine-blue: #1b31e0; 
-            --primary: #007bff; 
-            --danger: #ef4444; 
-            --success: #22c55e; 
-            --bg: #f1f5f9; 
-        }
-        
+        :root { --vitrine-blue: #1b31e0; --primary: #007bff; --danger: #ef4444; --success: #22c55e; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* BARRA AZUL VITRINE COM LOGO E WHATSAPPS */
-        .brand-header { 
-            background: var(--vitrine-blue); 
-            color: white; 
-            padding: 10px 30px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
+        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .brand-logo img { height: 45px; display: block; }
-        
         .brand-contacts { display: flex; gap: 15px; align-items: center; }
         .contact-unit { display: flex; flex-direction: column; align-items: flex-end; }
         .contact-label { font-size: 9px; text-transform: uppercase; opacity: 0.8; font-weight: bold; margin-bottom: 2px; }
-        .contact-link { 
-            color: white; 
-            text-decoration: none; 
-            background: rgba(255,255,255,0.15); 
-            padding: 4px 12px; 
-            border-radius: 15px; 
-            font-size: 13px; 
-            font-weight: 600;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .contact-link:hover { background: var(--success); }
+        .contact-link { color: white; text-decoration: none; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 15px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 
-        /* Barra de Ferramentas */
         .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; z-index: 10; }
         .group { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #eee; padding-right: 12px; }
-        .group:last-child { border: none; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
         
-        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
-        .btn:hover { background: #f8f9fa; border-color: #999; }
+        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--primary); color: white; border: none; }
         
-        /* Área de Trabalho */
-        .workspace { flex: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; background: #cbd5e1; }
+        /* Controles de Zoom */
+        .zoom-control { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 5px 15px; border-radius: 20px; border: 1px solid #ddd; }
+
+        .workspace { flex: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; background: #cbd5e1; position: relative; }
         canvas { box-shadow: 0 0 25px rgba(0,0,0,0.15); border-radius: 4px; }
         
-        /* Rodapé de Ações */
         .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; }
         .btn-save { background: #0ea5e9; color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
         .btn-final { background: var(--success); color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
@@ -70,23 +38,10 @@
 <body>
 
 <div class="brand-header">
-    <div class="brand-logo">
-        <img src="logo.png" alt="Vitrine Acessórios">
-    </div>
-    
+    <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
     <div class="brand-contacts">
-        <div class="contact-unit">
-            <span class="contact-label">Vendas / Representante</span>
-            <a href="https://wa.me/5518981212934" target="_blank" class="contact-link">
-                🟢 (18) 98121-2934
-            </a>
-        </div>
-        <div class="contact-unit">
-            <span class="contact-label">Suporte / Fixo</span>
-            <a href="https://wa.me/551836424452" target="_blank" class="contact-link">
-                📞 (18) 3642-4452
-            </a>
-        </div>
+        <div class="contact-unit"><span class="contact-label">Vendas / Representante</span><a href="https://wa.me/5518981212934" target="_blank" class="contact-link">🟢 (18) 98121-2934</a></div>
+        <div class="contact-unit"><span class="contact-label">Suporte / Fixo</span><a href="https://wa.me/551836424452" target="_blank" class="contact-link">📞 (18) 3642-4452</a></div>
     </div>
 </div>
 
@@ -108,12 +63,12 @@
         </div>
     </div>
     <div class="group">
-        <label>3. Fonte</label>
-        <select id="fontFamily" class="btn" onchange="mudarFonte(this.value)">
-            <option value="Arial Black">Arial Black</option>
-            <option value="Impact">Impact</option>
-            <option value="Pacifico">Cursiva</option>
-        </select>
+        <label>3. Zoom</label>
+        <div class="zoom-control">
+            <button class="btn" onclick="adjustZoom(-0.1)">-</button>
+            <input type="range" min="0.5" max="2" step="0.1" value="1" id="zoomRange" oninput="setZoom(this.value)">
+            <button class="btn" onclick="adjustZoom(0.1)">+</button>
+        </div>
     </div>
     <div class="group">
         <label>Gerenciar</label>
@@ -121,7 +76,7 @@
     </div>
 </div>
 
-<div class="workspace">
+<div class="workspace" id="wrapper">
     <canvas id="c"></canvas>
 </div>
 
@@ -131,18 +86,48 @@
 </div>
 
 <script>
-    const canvas = new fabric.Canvas('c', {
-        width: 1000, 
-        height: 450,
-        backgroundColor: '#ffffff'
-    });
+    const canvas = new fabric.Canvas('c', { width: 1000, height: 500, backgroundColor: '#ffffff' });
 
-    // Ajuste de ambiente para os seus SVGs reais
+    // --- AUTO-SAVE (LocalStorage) ---
+    function saveProject() {
+        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'hasControls', 'lockMovementX', 'lockMovementY', 'selectable']));
+        localStorage.setItem('vitrine_project', json);
+    }
+
+    function loadProject() {
+        const saved = localStorage.getItem('vitrine_project');
+        if (saved) {
+            canvas.loadFromJSON(saved, () => {
+                canvas.renderAll();
+                reestruturarAmbiente();
+            });
+        } else {
+            addPulseira('adulto');
+        }
+    }
+
+    canvas.on('object:modified', saveProject);
+    canvas.on('object:added', saveProject);
+    canvas.on('object:removed', saveProject);
+
+    // --- ZOOM ---
+    function setZoom(value) {
+        canvas.setZoom(parseFloat(value));
+        document.getElementById('zoomRange').value = value;
+    }
+
+    function adjustZoom(delta) {
+        let newZoom = canvas.getZoom() + delta;
+        if (newZoom > 2) newZoom = 2;
+        if (newZoom < 0.5) newZoom = 0.5;
+        setZoom(newZoom);
+    }
+
+    // --- FUNÇÕES CORE ---
     function reestruturarAmbiente() {
         const objetos = canvas.getObjects();
         const pulseiras = objetos.filter(obj => obj.isPulseira);
         objetos.filter(obj => obj.isLegenda).forEach(l => canvas.remove(l));
-
         let currentY = 40;
         const espacamento = 320; 
 
@@ -155,7 +140,7 @@
             legenda.sendToBack();
             currentY += espacamento;
         });
-        canvas.setHeight(pulseiras.length > 0 ? currentY + 50 : 450);
+        canvas.setHeight(Math.max(500, currentY + 50));
         canvas.renderAll();
     }
 
@@ -165,9 +150,7 @@
             const pulseiraSVG = fabric.util.groupSVGElements(objects, options);
             const larguraVisual = (tipo === 'adulto') ? 780 : 660;
 
-            if (pulseiraSVG.getObjects) {
-                pulseiraSVG.getObjects().forEach(obj => obj.set('strokeWidth', 1.5));
-            }
+            pulseiraSVG.getObjects().forEach(obj => obj.set('strokeWidth', 1.5));
 
             pulseiraSVG.set({
                 left: 120, top: 0, isPulseira: true, tipoRef: tipo,
@@ -179,6 +162,18 @@
             pulseiraSVG.sendToBack();
             reestruturarAmbiente();
         });
+    }
+
+    function mudarCor(c) {
+        const objs = canvas.getActiveObjects();
+        objs.forEach(o => {
+            if (o.type === 'i-text') o.set('fill', c);
+            else if (o.isPulseira) {
+                o.getObjects().forEach(child => child.set('fill', c));
+            }
+        });
+        canvas.renderAll();
+        saveProject();
     }
 
     function addTexto() {
@@ -204,41 +199,8 @@
         }
     }
 
-    function mudarFonte(f) {
-        const obj = canvas.getActiveObject();
-        if(obj && obj.type === 'i-text') { obj.set('fontFamily', f); canvas.renderAll(); }
-    }
-
-function mudarCor(c) {
-    const objs = canvas.getActiveObjects();
-    
-    objs.forEach(o => {
-        // Se for texto, muda a cor direto
-        if (o.type === 'i-text') {
-            o.set('fill', c);
-        } 
-        // Se for a pulseira (SVG), temos que pintar cada pedacinho dentro dela
-        else if (o.isPulseira) {
-            if (o.getObjects) {
-                o.getObjects().forEach(child => {
-                    child.set('fill', c);
-                });
-            } else {
-                o.set('fill', c);
-            }
-        }
-        // Para logos ou outras imagens
-        else {
-            o.set('fill', c);
-        }
-    });
-    
-    canvas.renderAll();
-}
-
     function removerSelecionado() {
-        const ativos = canvas.getActiveObjects();
-        ativos.forEach(obj => canvas.remove(obj));
+        canvas.getActiveObjects().forEach(obj => canvas.remove(obj));
         canvas.discardActiveObject();
         reestruturarAmbiente();
     }
@@ -252,19 +214,11 @@ function mudarCor(c) {
     }
 
     function enviarWhatsApp() {
-        // Envia para a REPRESENTANTE conforme solicitado
-        const fone = "5518981212934";
-        const msg = encodeURIComponent("Olá! Montei minha arte personalizada no simulador Vitrine e estou enviando o arquivo.");
-        window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${msg}`);
+        window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte no simulador e estou enviando.`);
     }
 
-    window.addEventListener('keydown', (e) => {
-        if ((e.key === 'Delete' || e.key === 'Backspace') && !canvas.getActiveObject()?.isEditing) {
-            removerSelecionado();
-        }
-    });
-
-    addPulseira('adulto');
+    // Iniciar
+    loadProject();
 </script>
 </body>
 </html>
