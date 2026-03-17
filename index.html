@@ -209,11 +209,32 @@
         if(obj && obj.type === 'i-text') { obj.set('fontFamily', f); canvas.renderAll(); }
     }
 
-    function mudarCor(c) {
-        const objs = canvas.getActiveObjects();
-        objs.forEach(o => o.set('fill', c));
-        canvas.renderAll();
-    }
+function mudarCor(c) {
+    const objs = canvas.getActiveObjects();
+    
+    objs.forEach(o => {
+        // Se for texto, muda a cor direto
+        if (o.type === 'i-text') {
+            o.set('fill', c);
+        } 
+        // Se for a pulseira (SVG), temos que pintar cada pedacinho dentro dela
+        else if (o.isPulseira) {
+            if (o.getObjects) {
+                o.getObjects().forEach(child => {
+                    child.set('fill', c);
+                });
+            } else {
+                o.set('fill', c);
+            }
+        }
+        // Para logos ou outras imagens
+        else {
+            o.set('fill', c);
+        }
+    });
+    
+    canvas.renderAll();
+}
 
     function removerSelecionado() {
         const ativos = canvas.getActiveObjects();
