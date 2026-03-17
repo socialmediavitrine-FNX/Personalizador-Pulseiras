@@ -112,11 +112,14 @@
     }
 
     // FUNÇÕES DE PULSEIRA
-    function addPulseira(tipo) {
-        const file = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+function addPulseira(tipo) {
+        // O '+ "?v=" + new Date().getTime()' impede o cache viciado
+        const file = ((tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg') + "?v=" + new Date().getTime();
+        
         fabric.loadSVGFromURL(file, function(objects, options) {
-            if (!objects) {
-                alert("Erro ao carregar o arquivo: " + file);
+            if (!objects || objects.length === 0) {
+                console.error("Erro ao carregar: " + file);
+                alert("O arquivo da pulseira não foi encontrado. Verifique se ele está na raiz do GitHub.");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
