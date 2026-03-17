@@ -104,22 +104,20 @@
         canvas.renderAll();
     });
 
-    // ZOOM
     function adjustZoom(delta) {
         let zoom = canvas.getZoom() + delta;
         if (zoom > 3) zoom = 3; if (zoom < 0.5) zoom = 0.5;
         canvas.setZoom(zoom);
     }
 
-    // FUNÇÕES DE PULSEIRA
-function addPulseira(tipo) {
-        // O '+ "?v=" + new Date().getTime()' impede o cache viciado
-        const file = ((tipo === 'adulto') ? 'pulseira-v2.svg' : 'pulseira-infantil.svg') + "?v=" + new Date().getTime();
+    // FUNÇÕES DE PULSEIRA - AGORA COM PULSEIRA-V2.SVG
+    function addPulseira(tipo) {
+        // Atualizado para buscar o novo nome que você colocou no GitHub
+        const file = (tipo === 'adulto') ? 'pulseira-v2.svg' : 'pulseira-infantil.svg';
         
         fabric.loadSVGFromURL(file, function(objects, options) {
             if (!objects || objects.length === 0) {
-                console.error("Erro ao carregar: " + file);
-                alert("O arquivo da pulseira não foi encontrado. Verifique se ele está na raiz do GitHub.");
+                alert("O arquivo " + file + " ainda não está disponível no servidor. Tente novamente em 30 segundos.");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
@@ -139,7 +137,7 @@ function addPulseira(tipo) {
         let currentY = 50;
         pS.forEach(p => {
             p.set({ top: currentY }).setCoords();
-            currentY += 300;
+            currentY += 320; // Espaço entre pulseiras
         });
         canvas.setHeight(Math.max(500, currentY + 50));
         canvas.renderAll();
@@ -172,11 +170,9 @@ function addPulseira(tipo) {
             localStorage.removeItem('vitrine_manual_save');
             canvas.clear();
             canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
-            addPulseira('adulto');
         }
     }
 
-    // SALVAMENTO MANUAL
     function saveManual() {
         const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef']));
         localStorage.setItem('vitrine_manual_save', json);
@@ -190,8 +186,6 @@ function addPulseira(tipo) {
                 canvas.renderAll();
                 reorganizar();
             });
-        } else {
-            addPulseira('adulto');
         }
     }
 
@@ -207,7 +201,6 @@ function addPulseira(tipo) {
         window.open("https://wa.me/5518981212934?text=Olá, finalizei minha arte no simulador!");
     }
 
-    // Iniciar carregando o que foi salvo manualmente
     loadManual();
 </script>
 </body>
