@@ -7,16 +7,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Impact&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --vitrine-blue: #1b31e0; --primary: #007bff; --danger: #ef4444; --success: #22c55e; --bg: #f1f5f9; }
+        :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
         /* Header */
-        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 20; }
-        .brand-logo img { height: 35px; display: block; }
+        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+        .brand-logo img { height: 35px; }
         .btn-guide { background: #6366f1; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
         /* Toolbar */
-        .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; overflow-x: auto; white-space: nowrap; z-index: 10; }
+        .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; overflow-x: auto; z-index: 10; }
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 15px; flex-shrink: 0; }
         label { font-size: 9px; font-weight: bold; color: #888; text-transform: uppercase; }
         
@@ -25,75 +25,82 @@
 
         /* Cores */
         .color-palette { display: flex; gap: 6px; align-items: center; }
-        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); transition: 0.2s; }
-        .color-dot:hover { transform: scale(1.1); }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); }
 
-        /* Workspace Anti-Seleção Mobile */
-        .workspace { flex: 1; overflow: auto; padding: 30px; background: #475569; position: relative; -webkit-overflow-scrolling: touch; user-select: none; }
+        /* Workspace: Ajustado para Navegação Fluida */
+        .workspace { 
+            flex: 1; 
+            overflow: auto; 
+            padding: 20px; 
+            background: #475569; 
+            display: block; /* Permite scroll natural */
+            -webkit-overflow-scrolling: touch; 
+            position: relative;
+        }
+        
         canvas { 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); 
             border-radius: 4px; 
+            /* Permite gestos de scroll/pan do sistema no fundo do canvas */
             touch-action: pan-x pan-y; 
             -webkit-tap-highlight-color: transparent;
         }
         
         /* Modal */
         #guideModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 450px; width: 85%; position: relative; }
-        .kit-alert { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; border-left: 4px solid #ffeeba; margin: 15px 0; font-size: 13px; font-weight: bold; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 450px; width: 85%; }
 
         /* Footer */
         .footer-actions { background: white; padding: 10px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .btn-exp { border: none; padding: 10px 15px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; color: white; }
+        .btn-exp { border: none; padding: 10px 15px; font-size: 12px; font-weight: bold; border-radius: 6px; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="guideModal">
     <div class="modal-content">
-        <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Como usar</h2>
-        <p style="font-size:14px; color:#444;">1. Adicione a pulseira.<br>2. Use o <b>+ Texto</b> ou <b>+ Imagem</b>.<br>3. Clique no item e selecione uma cor.<br>4. <b>No Mobile:</b> Use dois dedos no fundo cinza para rolar a página.</p>
-        <div class="kit-alert">⚠️ KIT: Personalize todas as pulseiras do pedido aqui!</div>
-        <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">ENTENDI!</button>
+        <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Guia Rápido</h2>
+        <p style="font-size:14px; color:#444;">• Toque na <b>área branca</b> (sem objetos) para deslizar a tela.<br>• Toque no <b>texto ou pulseira</b> para editar.<br>• Use 2 dedos para dar zoom se necessário.</p>
+        <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">COMEÇAR</button>
     </div>
 </div>
 
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
-    <button class="btn btn-guide" onclick="toggleGuide()">GUIA</button>
+    <button class="btn btn-guide" onclick="toggleGuide()">AJUDA</button>
 </div>
 
 <div class="toolbar">
     <div class="group">
-        <label>1. Modelos</label>
+        <label>1. Pulseiras</label>
         <div style="display:flex; gap:4px;">
-            <button class="btn btn-add" onclick="addPulseira('adulto')">Adulto</button>
-            <button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">Infantil</button>
+            <button class="btn btn-add" onclick="addPulseira('adulto')">+ Adulto</button>
+            <button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">+ Infantil</button>
         </div>
     </div>
     <div class="group">
-        <label>2. Adicionar</label>
+        <label>2. Criar</label>
         <div style="display:flex; gap:4px;">
             <button class="btn" onclick="addTexto()">+ Texto</button>
-            <button class="btn" onclick="document.getElementById('imgInp').click()">+ Img</button>
+            <button class="btn" onclick="document.getElementById('imgInp').click()">+ Foto</button>
             <input type="file" id="imgInp" hidden onchange="uploadImg(this)">
         </div>
     </div>
     <div class="group">
-        <label>3. Cores Principais</label>
+        <label>3. Cores</label>
         <div class="color-palette">
-            <div class="color-dot" style="background:#FF1493" title="Pink" onclick="mudarCor('#FF1493')"></div>
-            <div class="color-dot" style="background:#0000FF" title="Azul" onclick="mudarCor('#0000FF')"></div>
-            <div class="color-dot" style="background:#000000" title="Preto" onclick="mudarCor('#000000')"></div>
-            <div class="color-dot" style="background:#CCFF00" title="Fosforescente" onclick="mudarCor('#CCFF00')"></div>
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:28px; height:28px; cursor:pointer; border:none; background:none;">
+            <div class="color-dot" style="background:#FF1493" onclick="mudarCor('#FF1493')"></div>
+            <div class="color-dot" style="background:#0000FF" onclick="mudarCor('#0000FF')"></div>
+            <div class="color-dot" style="background:#000000" onclick="mudarCor('#000000')"></div>
+            <div class="color-dot" style="background:#CCFF00" onclick="mudarCor('#CCFF00')"></div>
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:25px; height:25px; cursor:pointer; border:none; background:none;">
         </div>
     </div>
     <div class="group" style="border:none;">
-        <label>4. Ações</label>
+        <label>4. Editar</label>
         <div style="display:flex; gap:4px;">
-            <button class="btn" onclick="undo()" title="Desfazer">↩</button>
-            <button class="btn" style="color:var(--danger)" onclick="removerSelecionado()">🗑</button>
+            <button class="btn" onclick="undo()">↩</button>
+            <button class="btn" style="color:#ef4444" onclick="removerSelecionado()">🗑</button>
         </div>
     </div>
 </div>
@@ -103,24 +110,33 @@
 </div>
 
 <div class="footer-actions">
-    <button class="btn-exp" style="background:#0ea5e9" onclick="baixarPNG()">BAIXAR PNG</button>
+    <button class="btn-exp" style="background:#0ea5e9" onclick="baixarPNG()">SALVAR IMAGEM</button>
     <button class="btn-exp" style="background:#f59e0b" onclick="exportarSVG()">SVG (COREL)</button>
-    <button class="btn-exp" style="background:#22c55e" onclick="enviarWhatsApp()">FINALIZAR</button>
+    <button class="btn-exp" style="background:#22c55e" onclick="enviarWhatsApp()">PEDIR NO WHATSAPP</button>
 </div>
 
 <script>
-    // Inicialização com trava de seleção múltipla para Mobile
+    // Configuração do Canvas focada em UX Mobile
     const canvas = new fabric.Canvas('c', { 
         width: 1000, 
         height: 650, 
         backgroundColor: '#ffffff',
-        allowTouchScrolling: true,
-        selection: false // DESATIVA o box roxo de seleção por arraste
+        selection: false,
+        allowTouchScrolling: true // Habilita o scroll nativo ao tocar no canvas
+    });
+
+    // DINÂMICA DE TOQUE: Se não tocar em objeto, libera o scroll da página
+    canvas.on('mouse:down', function(opt) {
+        if (!opt.target) {
+            canvas.allowTouchScrolling = true;
+        } else {
+            canvas.allowTouchScrolling = false; // Bloqueia scroll para permitir arrastar o objeto
+        }
     });
 
     let _clipboard;
 
-    // Impede seleção de múltiplos objetos (evita confusão no touch)
+    // Impede seleções múltiplas que bugam o touch
     canvas.on('selection:created', (e) => {
         if (e.selected && e.selected.length > 1) {
             canvas.discardActiveObject();
@@ -128,49 +144,7 @@
         }
     });
 
-    // --- CLIPBOARD ---
-    function Copy() {
-        const active = canvas.getActiveObject();
-        if (active) active.clone(cloned => { _clipboard = cloned; }, ['isPulseira', 'tipoRef']);
-    }
-    function Paste() {
-        if (!_clipboard) return;
-        _clipboard.clone(clonedObj => {
-            canvas.discardActiveObject();
-            clonedObj.set({ left: clonedObj.left + 25, top: clonedObj.top + 25, evented: true });
-            canvas.add(clonedObj);
-            _clipboard.top += 25; _clipboard.left += 25;
-            canvas.setActiveObject(clonedObj);
-            canvas.requestRenderAll();
-        }, ['isPulseira', 'tipoRef']);
-    }
-
-    // --- ATALHOS ---
-    window.addEventListener('keydown', (e) => {
-        if (e.ctrlKey) {
-            if (e.key === 'c') Copy();
-            if (e.key === 'v') Paste();
-            if (e.key === 'z') undo();
-        }
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            if (canvas.getActiveObject() && !canvas.getActiveObject().isEditing) removerSelecionado();
-        }
-    });
-
-    // --- HISTÓRICO ---
-    let history = []; let historyIndex = -1; let isTransitioning = false;
-    function saveHistory() {
-        if (isTransitioning) return;
-        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda']));
-        if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
-        history.push(json); historyIndex++;
-        localStorage.setItem('vitrine_project', json);
-    }
-    function undo() { if (historyIndex > 0) { isTransitioning = true; historyIndex--; applyHistory(); } }
-    function applyHistory() { canvas.loadFromJSON(history[historyIndex], () => { canvas.renderAll(); isTransitioning = false; }); }
-    canvas.on('object:added', saveHistory); canvas.on('object:modified', saveHistory); canvas.on('object:removed', saveHistory);
-
-    // --- PULSEIRAS ---
+    // --- FUNÇÕES DE ARTE ---
     function addPulseira(tipo) {
         const ts = new Date().getTime();
         fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}?t=${ts}`, (objects, options) => {
@@ -195,19 +169,12 @@
         canvas.setHeight(Math.max(650, currentY)); canvas.renderAll();
     }
 
-    // --- COR E TEXTO ---
     function mudarCor(c) {
-        const activeObjects = canvas.getActiveObjects();
-        if (activeObjects.length === 0) return;
-
-        activeObjects.forEach(o => {
+        const active = canvas.getActiveObjects();
+        if (active.length === 0) return;
+        active.forEach(o => {
             if (o.type.includes('text')) o.set('fill', c);
-            else if (o.isPulseira) {
-                o.getObjects().forEach(child => { 
-                    child.set('fill', c); 
-                    child.set('stroke', c); 
-                });
-            }
+            else if (o.isPulseira) o.getObjects().forEach(child => { child.set('fill', c); child.set('stroke', c); });
             else if (o.type === 'image') {
                 o.filters = [new fabric.Image.filters.BlendColor({ color: c, mode: 'tint', alpha: 1 })];
                 o.applyFilters();
@@ -218,8 +185,8 @@
 
     function addTexto() { 
         const t = new fabric.IText('Clique aqui', { 
-            left: 400, top: 200, fontSize: 35, fill: '#333', 
-            fontFamily: 'Inter', fontWeight: 'bold', cornerSize: 12, transparentCorners: false 
+            left: 400, top: 150, fontSize: 35, fill: '#333', 
+            fontFamily: 'Inter', fontWeight: 'bold', cornerSize: 15
         }); 
         canvas.add(t); canvas.setActiveObject(t); 
     }
@@ -229,40 +196,41 @@
             const r = new FileReader(); 
             r.onload = (e) => { 
                 fabric.Image.fromURL(e.target.result, img => { 
-                    img.scaleToWidth(120); 
-                    canvas.add(img); 
-                    canvas.setActiveObject(img); 
+                    img.scaleToWidth(120); canvas.add(img); canvas.setActiveObject(img); 
                 }); 
             }; 
             r.readAsDataURL(input.files[0]); 
         } 
     }
-    
-    // --- EXPORTAR ---
+
+    // --- UTILITÁRIOS ---
+    let history = []; let historyIndex = -1; let isTransitioning = false;
+    function saveHistory() {
+        if (isTransitioning) return;
+        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda']));
+        if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
+        history.push(json); historyIndex++;
+        localStorage.setItem('vitrine_project', json);
+    }
+    function undo() { if (historyIndex > 0) { isTransitioning = true; historyIndex--; applyHistory(); } }
+    function applyHistory() { canvas.loadFromJSON(history[historyIndex], () => { canvas.renderAll(); isTransitioning = false; }); }
+    canvas.on('object:added', saveHistory); canvas.on('object:modified', saveHistory); canvas.on('object:removed', saveHistory);
+
     function baixarPNG() { const l = document.createElement('a'); l.download = 'minha-arte.png'; l.href = canvas.toDataURL({ multiplier: 2 }); l.click(); }
     function exportarSVG() { 
         const b = new Blob([canvas.toSVG({ width: 1000, height: canvas.getHeight() })], { type: 'image/svg+xml' }); 
-        const l = document.createElement('a'); 
-        l.href = URL.createObjectURL(b); 
-        l.download = 'projeto-corel.svg'; 
-        l.click(); 
+        const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'projeto.svg'; l.click(); 
     }
-    function enviarWhatsApp() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Acabei de montar minha arte personalizada no simulador.`); }
+    function enviarWhatsApp() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte personalizada.`); }
     function removerSelecionado() { canvas.getActiveObjects().forEach(o => canvas.remove(o)); canvas.discardActiveObject(); reestruturarAmbiente(); }
     function toggleGuide() { const m = document.getElementById('guideModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
 
-    // Carregamento Inicial
+    // Inicialização
     const saved = localStorage.getItem('vitrine_project');
     if (saved) { 
-        canvas.loadFromJSON(saved, () => { 
-            canvas.renderAll(); 
-            history = [saved]; 
-            historyIndex = 0; 
-            setTimeout(reestruturarAmbiente, 500); 
-        }); 
+        canvas.loadFromJSON(saved, () => { canvas.renderAll(); history = [saved]; historyIndex = 0; setTimeout(reestruturarAmbiente, 500); }); 
     } else { 
-        addPulseira('adulto'); 
-        toggleGuide(); 
+        addPulseira('adulto'); toggleGuide(); 
     }
 </script>
 </body>
