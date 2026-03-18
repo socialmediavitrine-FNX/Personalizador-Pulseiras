@@ -9,35 +9,18 @@
     <style>
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        
-        /* Cabeçalho com Suporte */
-        .brand-header { 
-            background: var(--vitrine-blue); 
-            color: white; 
-            padding: 10px 30px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
+        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .brand-logo img { height: 45px; }
-        .suporte-info { text-align: right; font-size: 12px; font-weight: bold; line-height: 1.4; }
-
-        /* Barra de Ferramentas */
-        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; flex-wrap: wrap; }
+        .suporte-info { text-align: right; font-size: 11px; font-weight: bold; line-height: 1.4; }
+        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .group { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #eee; padding-right: 12px; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
-        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
-        .btn:hover { background: #f8f9fa; }
+        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 11px; }
         .btn-add { background: var(--primary); color: white; border: none; }
-        
-        /* Área do Canvas */
         .workspace { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 20px; background: #cbd5e1; }
-        canvas { box-shadow: 0 0 25px rgba(0,0,0,0.15); background-color: white; }
-
-        /* Rodapé de Ações */
-        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .btn-action { color: white; border: none; padding: 10px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        canvas { box-shadow: 0 0 25px rgba(0,0,0,0.2); background-color: white; }
+        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; }
+        .btn-action { color: white; border: none; padding: 10px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -59,12 +42,18 @@
         </div>
     </div>
     <div class="group">
-        <label>2. Arte</label>
+        <label>2. Elementos</label>
         <div style="display:flex; gap:5px;">
             <button class="btn" onclick="addTexto()">+ TEXTO</button>
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" title="Mudar Cor" style="width:35px; height:35px; cursor:pointer; border:1px solid #ccc; padding:2px;">
-            <button class="btn" style="color:red" onclick="removerSelecionado()">APAGAR</button>
+            <button class="btn" onclick="document.getElementById('imgInput').click()" style="background: #f39c12; color: white; border: none;">+ IMAGEM</button>
+            <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImagem(event)">
+            
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:35px; height:35px; cursor:pointer;">
         </div>
+    </div>
+    <div class="group">
+        <label>3. Gestão</label>
+        <button class="btn" style="color:red" onclick="removerSelecionado()">APAGAR</button>
     </div>
 </div>
 
@@ -74,45 +63,51 @@
 
 <div class="footer-actions">
     <button class="btn-action" style="background: #555;" onclick="salvarProgresso()">💾 SALVAR PROJETO</button>
-    <button class="btn-action" style="background: #0ea5e9;" onclick="baixarImagem()">⬇ BAIXAR IMAGEM</button>
-    <button class="btn-action" style="background: #22c55e;" onclick="enviarWhatsApp()">✅ ENVIAR WHATSAPP</button>
+    <button class="btn-action" style="background: #0ea5e9;" onclick="baixarImagem()">⬇ BAIXAR ARTE</button>
+    <button class="btn-action" style="background: #22c55e;" onclick="enviarWhatsApp()">✅ FINALIZAR WHATSAPP</button>
     <button class="btn" onclick="limparTudo()">LIMPAR TUDO</button>
 </div>
 
 <script>
-    // Canvas em tamanho fixo para garantir que tudo apareça
     const canvas = new fabric.Canvas('c', { 
-        width: 850, 
-        height: 600, 
-        backgroundColor: '#ffffff'
+        width: 850, height: 600, backgroundColor: '#ffffff' 
     });
 
-function addPulseira(tipo) {
-        // Forçamos um "timestamp" (?t=) para o navegador não usar o cache antigo
+    // --- FUNÇÃO PARA ADICIONAR PULSEIRA ---
+    function addPulseira(tipo) {
         const timestamp = new Date().getTime();
         const arquivo = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
         
         fabric.loadSVGFromURL(arquivo, function(objects, options) {
-            if (!objects || objects.length === 0) {
-                alert("Aguarde o GitHub processar o arquivo...");
+            if (!objects) {
+                alert("Erro ao carregar o arquivo.");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
-            
             pulseira.set({
-                left: 50,
-                top: 50,
-                isPulseira: true,
-                selectable: true,
-                hasControls: false,
-                lockMovementX: true,
-                lockMovementY: true
+                left: 25, isPulseira: true, selectable: true,
+                hasControls: false, lockMovementX: true, lockMovementY: true
             });
-
-            pulseira.scaleToWidth((tipo === 'adulto') ? 800 : 650);
+            pulseira.scaleToWidth(800);
             canvas.add(pulseira).sendToBack();
-            canvas.renderAll();
+            reorganizar();
         });
+    }
+
+    // --- NOVA FUNÇÃO: ADICIONAR IMAGEM ---
+    function uploadImagem(e) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const imgObj = new Image();
+            imgObj.src = event.target.result;
+            imgObj.onload = function() {
+                const image = new fabric.Image(imgObj);
+                image.scaleToWidth(100); // Começa com tamanho pequeno
+                image.set({ left: 200, top: 100 });
+                canvas.add(image).setActiveObject(image);
+            }
+        }
+        reader.readAsDataURL(e.target.files[0]);
     }
 
     function reorganizar() {
@@ -138,7 +133,7 @@ function addPulseira(tipo) {
         ativos.forEach(obj => {
             if (obj.isPulseira && obj.getObjects) {
                 obj.getObjects().forEach(filho => filho.set('fill', cor));
-            } else {
+            } else if (obj.type === 'i-text') {
                 obj.set('fill', cor);
             }
         });
@@ -159,11 +154,10 @@ function addPulseira(tipo) {
         }
     }
 
-    // --- FUNÇÕES DE SALVAMENTO E CONTATO ---
     function salvarProgresso() {
         const json = JSON.stringify(canvas.toJSON(['isPulseira']));
         localStorage.setItem('projeto_vitrine', json);
-        alert("Projeto salvo no seu navegador!");
+        alert("Projeto salvo!");
     }
 
     function carregarSalvo() {
@@ -179,17 +173,15 @@ function addPulseira(tipo) {
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'meu-pedido-vitrine.png';
+        link.download = 'pedido-vitrine.png';
         link.href = dataURL;
         link.click();
     }
 
     function enviarWhatsApp() {
-        const msg = encodeURIComponent("Olá! Acabei de criar uma arte no simulador e gostaria de fazer um orçamento.");
-        window.open(`https://wa.me/5518981212934?text=${msg}`);
+        window.open(`https://wa.me/5518981212934?text=Olá! Acabei de criar uma arte no simulador.`);
     }
 
-    // Carrega o projeto salvo ao abrir a página
     carregarSalvo();
 </script>
 </body>
