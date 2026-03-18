@@ -87,29 +87,31 @@
         backgroundColor: '#ffffff'
     });
 
-    function addPulseira(tipo) {
-        // Usando os nomes que estão na sua raiz do GitHub
-        const arquivo = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+function addPulseira(tipo) {
+        // Forçamos um "timestamp" (?t=) para o navegador não usar o cache antigo
+        const timestamp = new Date().getTime();
+        const arquivo = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
         
         fabric.loadSVGFromURL(arquivo, function(objects, options) {
-            if (!objects) {
-                alert("Erro ao carregar a pulseira. Verifique se o arquivo existe no GitHub.");
+            if (!objects || objects.length === 0) {
+                alert("Aguarde o GitHub processar o arquivo...");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
             
             pulseira.set({
-                left: 25,
+                left: 50,
+                top: 50,
                 isPulseira: true,
                 selectable: true,
-                hasControls: false, // Trava escala para segurança
+                hasControls: false,
                 lockMovementX: true,
                 lockMovementY: true
             });
 
-            pulseira.scaleToWidth(800);
+            pulseira.scaleToWidth((tipo === 'adulto') ? 800 : 650);
             canvas.add(pulseira).sendToBack();
-            reorganizar();
+            canvas.renderAll();
         });
     }
 
