@@ -18,27 +18,26 @@
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 15px; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn:hover:not(:disabled) { background: #f8fafc; border-color: #999; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-add { background: var(--primary); color: white; border: none; }
         
-        .color-palette { display: flex; gap: 4px; margin-top: 4px; }
-        .color-dot { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
-
         .workspace { flex: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; background: #475569; position: relative; }
         canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 4px; }
         
         .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; }
-        .btn-save { background: #0ea5e9; color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        .btn-final { background: var(--success); color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-exp { border: none; padding: 12px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; color: white; display: flex; align-items: center; gap: 8px; }
+        .bg-png { background: #0ea5e9; }
+        .bg-svg { background: #f59e0b; }
+        .bg-wpp { background: var(--success); }
     </style>
 </head>
 <body>
 
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
-    <a href="https://wa.me/5518981212934" target="_blank" class="contact-link">🟢 (18) 98121-2934</a>
+    <a href="https://wa.me/5518981212934" target="_blank" class="contact-link">🟢 WhatsApp Suporte</a>
 </div>
 
 <div class="toolbar">
@@ -62,26 +61,22 @@
     <div class="group">
         <label>3. Histórico</label>
         <div style="display:flex; gap:5px;">
-            <button id="btnUndo" class="btn" onclick="undo()" title="Ctrl+Z">↩ Desfazer</button>
-            <button id="btnRedo" class="btn" onclick="redo()" title="Ctrl+Y">↪ Refazer</button>
+            <button id="btnUndo" class="btn" onclick="undo()">↩</button>
+            <button id="btnRedo" class="btn" onclick="redo()">↪</button>
+            <button class="btn" style="color:var(--danger)" onclick="removerSelecionado()">🗑 Apagar</button>
         </div>
     </div>
 
     <div class="group">
         <label>4. Cor e Fonte</label>
         <div style="display:flex; align-items:center; gap:8px;">
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:32px; border:1px solid #ccc; cursor:pointer;">
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:32px; cursor:pointer;">
             <select id="fontFamily" class="btn" onchange="mudarFonte(this.value)">
-                <option value="Inter">Padrão (Inter)</option>
-                <option value="Pacifico">Cursiva (Pacifico)</option>
-                <option value="Impact">Forte (Impact)</option>
+                <option value="Inter">Inter</option>
+                <option value="Pacifico">Pacifico</option>
+                <option value="Impact">Impact</option>
             </select>
         </div>
-    </div>
-
-    <div class="group" style="border:none;">
-        <label>Ações</label>
-        <button class="btn" style="color:var(--danger); border-color:var(--danger)" onclick="removerSelecionado()">Apagar Seleção</button>
     </div>
 </div>
 
@@ -90,52 +85,34 @@
 </div>
 
 <div class="footer-actions">
-    <button class="btn-save" onclick="baixarImagem()">⬇ BAIXAR ARTE</button>
-    <button class="btn-final" onclick="enviarWhatsApp()">✅ FINALIZAR NO WHATSAPP</button>
+    <button class="btn-exp bg-png" onclick="baixarPNG()">🖼 BAIXAR PNG</button>
+    <button class="btn-exp bg-svg" onclick="exportarSVG()">🎨 EXPORTAR SVG (COREL)</button>
+    <button class="btn-exp bg-wpp" onclick="enviarWhatsApp()">✅ ENVIAR PEDIDO</button>
 </div>
 
 <script>
-    // Configurações Iniciais - Fundo cinza claro para destacar pulseiras brancas
     const canvas = new fabric.Canvas('c', { 
-        width: 1000, 
-        height: 650, 
-        backgroundColor: '#e2e8f0' // Cinza claro estratégico
+        width: 1000, height: 650, backgroundColor: '#e2e8f0' 
     });
 
-    // Sistema de Desfazer/Refazer (History)
     let history = [];
     let historyIndex = -1;
     let isTransitioning = false;
 
+    // --- SISTEMA DE HISTÓRICO ---
     function saveHistory() {
         if (isTransitioning) return;
         const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable']));
-        
-        // Remove histórico futuro se houver uma nova ação após desfazer
-        if (historyIndex < history.length - 1) {
-            history = history.slice(0, historyIndex + 1);
-        }
-        
+        if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
         history.push(json);
         historyIndex++;
         updateUndoButtons();
         localStorage.setItem('vitrine_project', json);
     }
 
-    function undo() {
-        if (historyIndex <= 0) return;
-        isTransitioning = true;
-        historyIndex--;
-        applyHistory();
-    }
-
-    function redo() {
-        if (historyIndex >= history.length - 1) return;
-        isTransitioning = true;
-        historyIndex++;
-        applyHistory();
-    }
-
+    function undo() { if (historyIndex > 0) { isTransitioning = true; historyIndex--; applyHistory(); } }
+    function redo() { if (historyIndex < history.length - 1) { isTransitioning = true; historyIndex++; applyHistory(); } }
+    
     function applyHistory() {
         canvas.loadFromJSON(history[historyIndex], () => {
             canvas.renderAll();
@@ -149,87 +126,42 @@
         document.getElementById('btnRedo').disabled = (historyIndex >= history.length - 1);
     }
 
-    // Atalhos de Teclado
-    window.addEventListener('keydown', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-            if (e.key === 'z') { e.preventDefault(); undo(); }
-            if (e.key === 'y') { e.preventDefault(); redo(); }
-        }
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            if (canvas.getActiveObject() && !canvas.getActiveObject().isEditing) {
-                removerSelecionado();
-            }
-        }
-    });
-
     canvas.on('object:added', saveHistory);
     canvas.on('object:modified', saveHistory);
     canvas.on('object:removed', saveHistory);
 
-    function loadProject() {
-        const saved = localStorage.getItem('vitrine_project');
-        if (saved) {
-            canvas.loadFromJSON(saved, () => {
-                canvas.renderAll();
-                history = [saved];
-                historyIndex = 0;
-                updateUndoButtons();
-                setTimeout(reestruturarAmbiente, 500);
-            });
-        } else {
-            addPulseira('adulto');
-        }
-    }
-
-    function reestruturarAmbiente() {
-        const objetos = canvas.getObjects();
-        const pulseiras = objetos.filter(obj => obj.isPulseira);
-        objetos.filter(obj => obj.isLegenda).forEach(l => canvas.remove(l));
-        
-        let currentY = 70; // Aumentado o topo inicial
-        pulseiras.forEach((p) => {
-            p.set({ top: currentY, left: 40 }).setCoords();
-            
-            // Legenda "ADULTO/INFANTIL" acima da pulseira
-            const legenda = new fabric.Text(p.tipoRef.toUpperCase(), {
-                left: 45, 
-                top: currentY - 25, // Posicionado acima da pulseira
-                fontSize: 12, 
-                fill: '#475569', 
-                selectable: false, 
-                isLegenda: true, 
-                fontWeight: 'bold',
-                fontFamily: 'Inter'
-            });
-            
-            canvas.add(legenda);
-            legenda.sendToBack();
-            currentY += 280; 
+    // --- FUNÇÕES DE COR ---
+    function mudarCor(c) {
+        const objs = canvas.getActiveObjects();
+        objs.forEach(o => {
+            if (o.type === 'i-text' || o.type === 'text') {
+                o.set('fill', c);
+            } else if (o.isPulseira) {
+                o.getObjects().forEach(child => { child.set('fill', c); child.set('stroke', c); });
+            } else if (o.type === 'image') {
+                // Filtro de Cor para Imagens (Ex: Logos)
+                o.filters = [new fabric.Image.filters.BlendColor({
+                    color: c,
+                    mode: 'tint',
+                    alpha: 1
+                })];
+                o.applyFilters();
+            }
         });
-        
-        canvas.setHeight(Math.max(650, currentY));
         canvas.renderAll();
+        saveHistory();
     }
 
+    // --- FUNÇÕES DE ADIÇÃO ---
     function addPulseira(tipo) {
-        const arquivoSVG = (tipo === 'adulto') ? `pulseira-adulto.svg` : `pulseira-infantil.svg`;
-        
-        fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
-            const pulseiraSVG = fabric.util.groupSVGElements(objects, options);
-            const larguraVisual = (tipo === 'adulto') ? 900 : 750;
-
-            pulseiraSVG.set({
-                isPulseira: true, 
-                tipoRef: tipo,
-                hasControls: false, 
-                lockMovementX: true, 
-                lockMovementY: true, 
-                selectable: true
-            });
-
-            pulseiraSVG.scaleToWidth(larguraVisual);
-            canvas.add(pulseiraSVG);
-            pulseiraSVG.sendToBack();
+        const timestamp = new Date().getTime();
+        const arquivo = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
+        fabric.loadSVGFromURL(arquivo, (objects, options) => {
+            const p = fabric.util.groupSVGElements(objects, options);
+            p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true });
+            p.scaleToWidth(tipo === 'adulto' ? 900 : 750);
+            canvas.add(p);
+            p.sendToBack();
             reestruturarAmbiente();
         });
     }
@@ -237,37 +169,10 @@
     function addTexto() {
         const t = new fabric.IText('Clique aqui', {
             left: 450, top: 200, fontSize: 35, fill: '#333', 
-            fontFamily: document.getElementById('fontFamily').value,
-            fontWeight: 'bold'
+            fontFamily: document.getElementById('fontFamily').value, fontWeight: 'bold'
         });
         canvas.add(t);
         canvas.setActiveObject(t);
-        t.bringToFront();
-    }
-
-    function mudarCor(c) {
-        const objs = canvas.getActiveObjects();
-        objs.forEach(o => {
-            if (o.type === 'i-text' || o.type === 'text') {
-                o.set('fill', c);
-            } else if (o.isPulseira) {
-                o.getObjects().forEach(child => {
-                    child.set('fill', c);
-                    child.set('stroke', c);
-                });
-            }
-        });
-        canvas.renderAll();
-        saveHistory();
-    }
-
-    function mudarFonte(fonte) {
-        const obj = canvas.getActiveObject();
-        if (obj && obj.type.includes('text')) {
-            obj.set('fontFamily', fonte);
-            canvas.renderAll();
-            saveHistory();
-        }
     }
 
     function uploadImg(input) {
@@ -278,24 +183,46 @@
                     img.scaleToWidth(120);
                     canvas.add(img);
                     canvas.setActiveObject(img);
-                    img.bringToFront();
                 });
             };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    function removerSelecionado() {
-        canvas.getActiveObjects().forEach(obj => canvas.remove(obj));
-        canvas.discardActiveObject();
-        reestruturarAmbiente();
+    function reestruturarAmbiente() {
+        const pulseiras = canvas.getObjects().filter(obj => obj.isPulseira);
+        canvas.getObjects().filter(obj => obj.isLegenda).forEach(l => canvas.remove(l));
+        let currentY = 70;
+        pulseiras.forEach(p => {
+            p.set({ top: currentY, left: 40 }).setCoords();
+            const legenda = new fabric.Text(p.tipoRef.toUpperCase(), {
+                left: 45, top: currentY - 25, fontSize: 12, fill: '#475569', selectable: false, isLegenda: true, fontWeight: 'bold'
+            });
+            canvas.add(legenda);
+            currentY += 280;
+        });
+        canvas.setHeight(Math.max(650, currentY));
+        canvas.renderAll();
     }
 
-    function baixarImagem() {
-        const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
+    // --- EXPORTAÇÃO (O CHEQUE-MATE) ---
+    function baixarPNG() {
         const link = document.createElement('a');
-        link.download = 'minha-arte.png';
-        link.href = dataURL;
+        link.download = 'arte-vitrine.png';
+        link.href = canvas.toDataURL({ format: 'png', multiplier: 2 });
+        link.click();
+    }
+
+    function exportarSVG() {
+        const svgData = canvas.toSVG({
+            width: 1000,
+            height: canvas.getHeight(),
+            viewBox: { x: 0, y: 0, width: 1000, height: canvas.getHeight() }
+        });
+        const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'arte-para-corel.svg';
         link.click();
     }
 
@@ -303,7 +230,24 @@
         window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte e estou enviando.`);
     }
 
-    loadProject();
+    function mudarFonte(f) { const o = canvas.getActiveObject(); if (o && o.type.includes('text')) { o.set('fontFamily', f); canvas.renderAll(); saveHistory(); } }
+    function removerSelecionado() { canvas.getActiveObjects().forEach(o => canvas.remove(o)); canvas.discardActiveObject(); reestruturarAmbiente(); }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'z') undo();
+        if (e.ctrlKey && e.key === 'y') redo();
+    });
+
+    // Início
+    const saved = localStorage.getItem('vitrine_project');
+    if (saved) {
+        canvas.loadFromJSON(saved, () => {
+            canvas.renderAll();
+            history = [saved]; historyIndex = 0;
+            updateUndoButtons();
+            setTimeout(reestruturarAmbiente, 500);
+        });
+    } else { addPulseira('adulto'); }
 </script>
 </body>
 </html>
