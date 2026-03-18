@@ -5,31 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personalizador Oficial | Vitrine Acessórios</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Impact&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        :root { --vitrine-blue: #1b31e0; --primary: #007bff; --danger: #ef4444; --success: #22c55e; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
         .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .brand-logo img { height: 45px; }
-        .suporte-info { text-align: right; font-size: 11px; font-weight: bold; line-height: 1.4; }
-        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        .brand-logo img { height: 45px; display: block; }
+        .brand-contacts { display: flex; gap: 15px; align-items: center; }
+        .contact-unit { display: flex; flex-direction: column; align-items: flex-end; }
+        .contact-label { font-size: 9px; text-transform: uppercase; opacity: 0.8; font-weight: bold; margin-bottom: 2px; }
+        .contact-link { color: white; text-decoration: none; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 15px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+
+        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; z-index: 10; }
         .group { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #eee; padding-right: 12px; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
-        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 11px; }
+        
+        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--primary); color: white; border: none; }
-        .workspace { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 20px; background: #cbd5e1; }
-        canvas { box-shadow: 0 0 25px rgba(0,0,0,0.2); background-color: white; }
-        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; }
-        .btn-action { color: white; border: none; padding: 10px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        
+        /* Controles de Zoom */
+        .zoom-control { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 5px 15px; border-radius: 20px; border: 1px solid #ddd; }
+
+        .workspace { flex: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; background: #cbd5e1; position: relative; }
+        canvas { box-shadow: 0 0 25px rgba(0,0,0,0.15); border-radius: 4px; }
+        
+        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; }
+        .btn-save { background: #0ea5e9; color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-final { background: var(--success); color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
-    <div class="suporte-info">
-        REPRESENTANTE: (18) 3642-4452<br>
-        WHATSAPP: (18) 98121-2934
+    <div class="brand-contacts">
+        <div class="contact-unit"><span class="contact-label">Vendas / Representante</span><a href="https://wa.me/5518981212934" target="_blank" class="contact-link">🟢 (18) 98121-2934</a></div>
+        <div class="contact-unit"><span class="contact-label">Suporte / Fixo</span><a href="https://wa.me/551836424452" target="_blank" class="contact-link">📞 (18) 3642-4452</a></div>
     </div>
 </div>
 
@@ -37,175 +49,176 @@
     <div class="group">
         <label>1. Pulseiras</label>
         <div style="display:flex; gap:5px;">
-            <button class="btn btn-add" onclick="addPulseira('adulto')">+ ADULTO</button>
-            <button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">+ INFANTIL</button>
+            <button class="btn btn-add" onclick="addPulseira('adulto')">+ Adulto</button>
+            <button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">+ Infantil</button>
         </div>
     </div>
     <div class="group">
-        <label>2. Elementos</label>
+        <label>2. Customizar</label>
         <div style="display:flex; gap:5px;">
-            <button class="btn" onclick="addTexto()">+ TEXTO</button>
-            <button class="btn" onclick="document.getElementById('imgInput').click()" style="background: #f39c12; color: white; border: none;">+ IMAGEM</button>
-            <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImagem(event)">
-            
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:35px; height:35px; cursor:pointer;">
+            <button class="btn" onclick="addTexto()">+ Texto</button>
+            <button class="btn" onclick="document.getElementById('imgInp').click()">+ Imagem</button>
+            <input type="file" id="imgInp" hidden onchange="uploadImg(this)">
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:30px; border:none; cursor:pointer;">
         </div>
     </div>
     <div class="group">
-        <label>3. Gestão</label>
-        <button class="btn" style="color:red" onclick="removerSelecionado()">APAGAR</button>
+        <label>3. Zoom</label>
+        <div class="zoom-control">
+            <button class="btn" onclick="adjustZoom(-0.1)">-</button>
+            <input type="range" min="0.5" max="2" step="0.1" value="1" id="zoomRange" oninput="setZoom(this.value)">
+            <button class="btn" onclick="adjustZoom(0.1)">+</button>
+        </div>
+    </div>
+    <div class="group">
+        <label>Gerenciar</label>
+        <button class="btn" style="color:var(--danger)" onclick="removerSelecionado()">Apagar Seleção</button>
     </div>
 </div>
 
-<div class="workspace">
+<div class="workspace" id="wrapper">
     <canvas id="c"></canvas>
 </div>
 
 <div class="footer-actions">
-    <button class="btn-action" style="background: #555;" onclick="salvarProgresso()">💾 SALVAR PROJETO</button>
-    <button class="btn-action" style="background: #0ea5e9;" onclick="baixarImagem()">⬇ BAIXAR ARTE</button>
-    <button class="btn-action" style="background: #22c55e;" onclick="enviarWhatsApp()">✅ FINALIZAR WHATSAPP</button>
-    <button class="btn" onclick="limparTudo()">LIMPAR TUDO</button>
+    <button class="btn-save" onclick="baixarImagem()">⬇ BAIXAR ARTE (PARA SHOPEE)</button>
+    <button class="btn-final" onclick="enviarWhatsApp()">✅ FINALIZAR COM REPRESENTANTE</button>
 </div>
 
 <script>
-    const canvas = new fabric.Canvas('c', { 
-        width: 850, height: 600, backgroundColor: '#ffffff' 
-    });
+    const canvas = new fabric.Canvas('c', { width: 1000, height: 500, backgroundColor: '#ffffff' });
 
-    // --- FUNÇÃO PARA ADICIONAR PULSEIRA ---
-function addPulseira(tipo) {
-    const timestamp = new Date().getTime();
-    const nomeArquivo = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
-    const urlFinal = './' + nomeArquivo + '?t=' + timestamp;
-    
-    fabric.loadSVGFromURL(urlFinal, function(objects, options) {
-        if (!objects || objects.length === 0) {
-            alert("O arquivo carregou, mas não há desenhos dentro dele.");
-            return;
-        }
-
-        // Agrupa os elementos
-        const pulseira = fabric.util.groupSVGElements(objects, options);
-        
-        // --- O PULO DO GATO ---
-        // 1. Remove qualquer transformação maluca que venha do Corel
-        pulseira.set({
-            left: 425, // Metade da largura do canvas (850/2)
-            top: 150,  // Posição fixa no topo
-            originX: 'center',
-            originY: 'center',
-            isPulseira: true,
-            selectable: true,
-            hasControls: false
-        });
-
-        // 2. Força o tamanho (independente se o SVG tem 3000px ou 800px)
-        pulseira.scaleToWidth(800);
-
-        // 3. Garante que ela apareça (Z-index)
-        const antigas = canvas.getObjects().filter(obj => obj.isPulseira);
-        antigas.forEach(obj => canvas.remove(obj));
-
-        canvas.add(pulseira);
-        pulseira.sendToBack();
-        
-        // 4. Renderização forçada
-        canvas.calcOffset();
-        canvas.renderAll();
-        
-        console.log("Pulseira adicionada com sucesso!");
-    }, null, { crossOrigin: 'anonymous' });
-}
-    // --- NOVA FUNÇÃO: ADICIONAR IMAGEM ---
-    function uploadImagem(e) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const imgObj = new Image();
-            imgObj.src = event.target.result;
-            imgObj.onload = function() {
-                const image = new fabric.Image(imgObj);
-                image.scaleToWidth(100); // Começa com tamanho pequeno
-                image.set({ left: 200, top: 100 });
-                canvas.add(image).setActiveObject(image);
-            }
-        }
-        reader.readAsDataURL(e.target.files[0]);
+    // --- AUTO-SAVE (LocalStorage) ---
+    function saveProject() {
+        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'hasControls', 'lockMovementX', 'lockMovementY', 'selectable']));
+        localStorage.setItem('vitrine_project', json);
     }
 
-    function reorganizar() {
-        const pulseiras = canvas.getObjects().filter(o => o.isPulseira);
-        let y = 40;
-        pulseiras.forEach(p => {
-            p.set({ top: y }).setCoords();
-            y += 280;
+    function loadProject() {
+        const saved = localStorage.getItem('vitrine_project');
+        if (saved) {
+            canvas.loadFromJSON(saved, () => {
+                canvas.renderAll();
+                reestruturarAmbiente();
+            });
+        } else {
+            addPulseira('adulto');
+        }
+    }
+
+    canvas.on('object:modified', saveProject);
+    canvas.on('object:added', saveProject);
+    canvas.on('object:removed', saveProject);
+
+    // --- ZOOM ---
+    function setZoom(value) {
+        canvas.setZoom(parseFloat(value));
+        document.getElementById('zoomRange').value = value;
+    }
+
+    function adjustZoom(delta) {
+        let newZoom = canvas.getZoom() + delta;
+        if (newZoom > 2) newZoom = 2;
+        if (newZoom < 0.5) newZoom = 0.5;
+        setZoom(newZoom);
+    }
+
+    // --- FUNÇÕES CORE ---
+    function reestruturarAmbiente() {
+        const objetos = canvas.getObjects();
+        const pulseiras = objetos.filter(obj => obj.isPulseira);
+        objetos.filter(obj => obj.isLegenda).forEach(l => canvas.remove(l));
+        let currentY = 40;
+        const espacamento = 320; 
+
+        pulseiras.forEach((p) => {
+            p.set({ top: currentY }).setCoords();
+            const legenda = new fabric.Text(p.tipoRef.toUpperCase(), {
+                left: 25, top: currentY + 10, fontSize: 11, fill: '#94a3b8', selectable: false, isLegenda: true, fontWeight: 'bold'
+            });
+            canvas.add(legenda);
+            legenda.sendToBack();
+            currentY += espacamento;
         });
-        canvas.setHeight(Math.max(600, y + 50));
+        canvas.setHeight(Math.max(500, currentY + 50));
         canvas.renderAll();
+    }
+
+    function addPulseira(tipo) {
+        const arquivoSVG = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+        fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
+            const pulseiraSVG = fabric.util.groupSVGElements(objects, options);
+            const larguraVisual = (tipo === 'adulto') ? 780 : 660;
+
+            pulseiraSVG.getObjects().forEach(obj => obj.set('strokeWidth', 1.5));
+
+            pulseiraSVG.set({
+                left: 120, top: 0, isPulseira: true, tipoRef: tipo,
+                hasControls: false, lockMovementX: true, lockMovementY: true, selectable: true
+            });
+
+            pulseiraSVG.scaleToWidth(larguraVisual);
+            canvas.add(pulseiraSVG);
+            pulseiraSVG.sendToBack();
+            reestruturarAmbiente();
+        });
+    }
+
+    function mudarCor(c) {
+        const objs = canvas.getActiveObjects();
+        objs.forEach(o => {
+            if (o.type === 'i-text') o.set('fill', c);
+            else if (o.isPulseira) {
+                o.getObjects().forEach(child => child.set('fill', c));
+            }
+        });
+        canvas.renderAll();
+        saveProject();
     }
 
     function addTexto() {
-        const t = new fabric.IText('Clique para editar', { 
-            left: 200, top: 100, fontSize: 25, fontFamily: 'Inter', fontWeight: 'bold' 
+        const t = new fabric.IText('Clique aqui', {
+            left: 200, top: 100, fontSize: 26, fill: '#333', 
+            fontFamily: document.getElementById('fontFamily').value
         });
-        canvas.add(t).setActiveObject(t);
+        canvas.add(t);
+        canvas.setActiveObject(t);
     }
 
-    function mudarCor(cor) {
-        const ativos = canvas.getActiveObjects();
-        ativos.forEach(obj => {
-            if (obj.isPulseira && obj.getObjects) {
-                obj.getObjects().forEach(filho => filho.set('fill', cor));
-            } else if (obj.type === 'i-text') {
-                obj.set('fill', cor);
-            }
-        });
-        canvas.renderAll();
+    function uploadImg(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                fabric.Image.fromURL(e.target.result, (img) => {
+                    img.scaleToWidth(100);
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                });
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function removerSelecionado() {
         canvas.getActiveObjects().forEach(obj => canvas.remove(obj));
         canvas.discardActiveObject();
-        reorganizar();
-    }
-
-    function limparTudo() {
-        if(confirm("Deseja apagar tudo?")) {
-            canvas.clear();
-            canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
-            localStorage.removeItem('projeto_vitrine');
-        }
-    }
-
-    function salvarProgresso() {
-        const json = JSON.stringify(canvas.toJSON(['isPulseira']));
-        localStorage.setItem('projeto_vitrine', json);
-        alert("Projeto salvo!");
-    }
-
-    function carregarSalvo() {
-        const salvo = localStorage.getItem('projeto_vitrine');
-        if (salvo) {
-            canvas.loadFromJSON(salvo, () => {
-                canvas.renderAll();
-                reorganizar();
-            });
-        }
+        reestruturarAmbiente();
     }
 
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'pedido-vitrine.png';
+        link.download = 'arte-vitrine.png';
         link.href = dataURL;
         link.click();
     }
 
     function enviarWhatsApp() {
-        window.open(`https://wa.me/5518981212934?text=Olá! Acabei de criar uma arte no simulador.`);
+        window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte no simulador e estou enviando.`);
     }
 
-    carregarSalvo();
+    // Iniciar
+    loadProject();
 </script>
 </body>
 </html>
