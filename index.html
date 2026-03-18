@@ -8,42 +8,62 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Cabeçalho com Suporte */
+        .brand-header { 
+            background: var(--vitrine-blue); 
+            color: white; 
+            padding: 10px 30px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
         .brand-logo img { height: 45px; }
-        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; z-index: 10; }
+        .suporte-info { text-align: right; font-size: 12px; font-weight: bold; line-height: 1.4; }
+
+        /* Barra de Ferramentas */
+        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; flex-wrap: wrap; }
         .group { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #eee; padding-right: 12px; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
-        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .btn:hover { background: #f8f9fa; }
         .btn-add { background: var(--primary); color: white; border: none; }
-        .workspace { flex: 1; display: flex; justify-content: center; align-items: flex-start; background: #cbd5e1; padding-top: 30px; overflow-y: auto; }
+        
+        /* Área do Canvas */
+        .workspace { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 20px; background: #cbd5e1; }
         canvas { box-shadow: 0 0 25px rgba(0,0,0,0.15); background-color: white; }
-        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; }
-        .btn-action { color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+
+        /* Rodapé de Ações */
+        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .btn-action { color: white; border: none; padding: 10px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     </style>
 </head>
 <body>
 
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
-    <div style="font-size: 12px; font-weight: bold;">SUPORTE: (18) 3642-4452</div>
+    <div class="suporte-info">
+        REPRESENTANTE: (18) 3642-4452<br>
+        WHATSAPP: (18) 98121-2934
+    </div>
 </div>
 
 <div class="toolbar">
     <div class="group">
         <label>1. Pulseiras</label>
         <div style="display:flex; gap:5px;">
-            <button class="btn btn-add" onclick="addPulseira('adulto')">+ Adulto</button>
-            <button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">+ Infantil</button>
+            <button class="btn btn-add" onclick="addPulseira('adulto')">+ ADULTO</button>
+            <button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">+ INFANTIL</button>
         </div>
     </div>
     <div class="group">
-        <label>2. Ferramentas</label>
+        <label>2. Arte</label>
         <div style="display:flex; gap:5px;">
-            <button class="btn" onclick="addTexto()">+ Texto</button>
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:33px; cursor:pointer;">
-            <button class="btn" style="color:red" onclick="removerSelecionado()">Apagar</button>
-            <button class="btn" style="background:#333; color:white" onclick="limparTudo()">Limpar Tudo</button>
+            <button class="btn" onclick="addTexto()">+ TEXTO</button>
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" title="Mudar Cor" style="width:35px; height:35px; cursor:pointer; border:1px solid #ccc; padding:2px;">
+            <button class="btn" style="color:red" onclick="removerSelecionado()">APAGAR</button>
         </div>
     </div>
 </div>
@@ -53,109 +73,122 @@
 </div>
 
 <div class="footer-actions">
-    <button class="btn-action" style="background: #0ea5e9;" onclick="baixarImagem()">⬇ BAIXAR ARTE</button>
-    <button class="btn-action" style="background: #22c55e;" onclick="enviarWhatsApp()">✅ FINALIZAR WHATSAPP</button>
+    <button class="btn-action" style="background: #555;" onclick="salvarProgresso()">💾 SALVAR PROJETO</button>
+    <button class="btn-action" style="background: #0ea5e9;" onclick="baixarImagem()">⬇ BAIXAR IMAGEM</button>
+    <button class="btn-action" style="background: #22c55e;" onclick="enviarWhatsApp()">✅ ENVIAR WHATSAPP</button>
+    <button class="btn" onclick="limparTudo()">LIMPAR TUDO</button>
 </div>
 
 <script>
-    // Canvas fixo sem Zoom/Pan complexo para evitar que os objetos "sumam"
+    // Canvas em tamanho fixo para garantir que tudo apareça
     const canvas = new fabric.Canvas('c', { 
-        width: 900, 
+        width: 850, 
         height: 600, 
-        backgroundColor: '#ffffff',
-        preserveObjectStacking: true 
+        backgroundColor: '#ffffff'
     });
-    
-function addPulseira(tipo) {
-        const file = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+
+    function addPulseira(tipo) {
+        // Usando os nomes que estão na sua raiz do GitHub
+        const arquivo = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
         
-        fabric.loadSVGFromURL(file, function(objects, options) {
+        fabric.loadSVGFromURL(arquivo, function(objects, options) {
             if (!objects) {
-                alert("Erro ao carregar arquivo!");
+                alert("Erro ao carregar a pulseira. Verifique se o arquivo existe no GitHub.");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
             
-            // --- O TRUQUE DE MESTRE: AUTO-CENTRALIZAR ---
             pulseira.set({
-                isPulseira: true, 
+                left: 25,
+                isPulseira: true,
                 selectable: true,
-                hasControls: false,
-                lockMovementX: true, 
+                hasControls: false, // Trava escala para segurança
+                lockMovementX: true,
                 lockMovementY: true
             });
 
-            // Isso força a pulseira a resetar as coordenadas do Corel e vir para o centro
-            canvas.add(pulseira);
-            pulseira.center(); 
-            pulseira.setCoords();
-
-            // Ajusta o tamanho
-            pulseira.scaleToWidth((tipo === 'adulto') ? 800 : 650);
-            
-            pulseira.sendToBack();
+            pulseira.scaleToWidth(800);
+            canvas.add(pulseira).sendToBack();
             reorganizar();
         });
     }
 
     function reorganizar() {
         const pulseiras = canvas.getObjects().filter(o => o.isPulseira);
-        let currentY = 50;
+        let y = 40;
         pulseiras.forEach(p => {
-            p.set({ top: currentY }).setCoords();
-            currentY += 280; 
+            p.set({ top: y }).setCoords();
+            y += 280;
         });
-        canvas.setHeight(Math.max(600, currentY + 100));
+        canvas.setHeight(Math.max(600, y + 50));
         canvas.renderAll();
     }
 
     function addTexto() {
-        const txt = new fabric.IText('Clique para editar', { 
-            left: 200, 
-            top: 100, 
-            fontSize: 25, 
-            fontFamily: 'Inter',
-            fontWeight: 'bold'
+        const t = new fabric.IText('Clique para editar', { 
+            left: 200, top: 100, fontSize: 25, fontFamily: 'Inter', fontWeight: 'bold' 
         });
-        canvas.add(txt).setActiveObject(txt);
+        canvas.add(t).setActiveObject(t);
     }
 
-    function mudarCor(c) {
-        const active = canvas.getActiveObjects();
-        active.forEach(o => {
-            if (o.isPulseira && o.getObjects) {
-                o.getObjects().forEach(child => child.set('fill', c));
+    function mudarCor(cor) {
+        const ativos = canvas.getActiveObjects();
+        ativos.forEach(obj => {
+            if (obj.isPulseira && obj.getObjects) {
+                obj.getObjects().forEach(filho => filho.set('fill', cor));
             } else {
-                o.set('fill', c);
+                obj.set('fill', cor);
             }
         });
         canvas.renderAll();
     }
 
     function removerSelecionado() {
-        canvas.getActiveObjects().forEach(o => canvas.remove(o));
+        canvas.getActiveObjects().forEach(obj => canvas.remove(obj));
         canvas.discardActiveObject();
         reorganizar();
     }
 
     function limparTudo() {
-        if(confirm("Limpar simulador?")) {
+        if(confirm("Deseja apagar tudo?")) {
             canvas.clear();
             canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
+            localStorage.removeItem('projeto_vitrine');
+        }
+    }
+
+    // --- FUNÇÕES DE SALVAMENTO E CONTATO ---
+    function salvarProgresso() {
+        const json = JSON.stringify(canvas.toJSON(['isPulseira']));
+        localStorage.setItem('projeto_vitrine', json);
+        alert("Projeto salvo no seu navegador!");
+    }
+
+    function carregarSalvo() {
+        const salvo = localStorage.getItem('projeto_vitrine');
+        if (salvo) {
+            canvas.loadFromJSON(salvo, () => {
+                canvas.renderAll();
+                reorganizar();
+            });
         }
     }
 
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'pedido-vitrine.png';
+        link.download = 'meu-pedido-vitrine.png';
         link.href = dataURL;
         link.click();
     }
 
     function enviarWhatsApp() {
-        window.open("https://wa.me/5518981212934?text=Olá, finalizei minha arte!");
+        const msg = encodeURIComponent("Olá! Acabei de criar uma arte no simulador e gostaria de fazer um orçamento.");
+        window.open(`https://wa.me/5518981212934?text=${msg}`);
     }
+
+    // Carrega o projeto salvo ao abrir a página
+    carregarSalvo();
 </script>
 </body>
 </html>
