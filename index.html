@@ -74,7 +74,7 @@
     });
 
     // --- FUNÇÃO PARA ADICIONAR PULSEIRA ---
-    function addPulseira(tipo) {
+function addPulseira(tipo) {
         const timestamp = new Date().getTime();
         const arquivo = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
         
@@ -84,12 +84,23 @@
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
+            
+            // RESET DE ESCALA: Isso anula o tamanho gigante do Corel
             pulseira.set({
-                left: 25, isPulseira: true, selectable: true,
-                hasControls: false, lockMovementX: true, lockMovementY: true
+                left: 25,
+                top: 40,
+                isPulseira: true,
+                selectable: true,
+                hasControls: false,
+                lockMovementX: true,
+                lockMovementY: true
             });
+
+            // Força ela a ter 800px de largura no site, não importa o tamanho original
             pulseira.scaleToWidth(800);
+            
             canvas.add(pulseira).sendToBack();
+            canvas.renderAll();
             reorganizar();
         });
     }
