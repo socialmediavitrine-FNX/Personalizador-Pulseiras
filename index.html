@@ -75,35 +75,38 @@
 
     // --- FUNÇÃO PARA ADICIONAR PULSEIRA ---
 function addPulseira(tipo) {
-        const timestamp = new Date().getTime();
-        const arquivo = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
-        
-        fabric.loadSVGFromURL(arquivo, function(objects, options) {
-            if (!objects) {
-                alert("Erro ao carregar o arquivo.");
-                return;
-            }
-            const pulseira = fabric.util.groupSVGElements(objects, options);
-            
-            // RESET DE ESCALA: Isso anula o tamanho gigante do Corel
-            pulseira.set({
-                left: 25,
-                top: 40,
-                isPulseira: true,
-                selectable: true,
-                hasControls: false,
-                lockMovementX: true,
-                lockMovementY: true
-            });
+    const timestamp = new Date().getTime();
+    // Adicionamos './' para garantir que ele busque na pasta raiz onde está o index.html
+    const nomeArquivo = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+    const urlFinal = './' + nomeArquivo + '?t=' + timestamp;
+    
+    console.log("Tentando carregar de:", urlFinal);
 
-            // Força ela a ter 800px de largura no site, não importa o tamanho original
-            pulseira.scaleToWidth(800);
-            
-            canvas.add(pulseira).sendToBack();
-            canvas.renderAll();
-            reorganizar();
+    fabric.loadSVGFromURL(urlFinal, function(objects, options) {
+        if (!objects || objects.length === 0) {
+            console.error("Erro 404: O arquivo não foi encontrado no servidor.");
+            alert("Erro: O arquivo " + nomeArquivo + " não foi encontrado. Verifique se ele terminou de subir no GitHub.");
+            return;
+        }
+        
+        const pulseira = fabric.util.groupSVGElements(objects, options);
+        
+        pulseira.set({
+            left: 25,
+            top: 40,
+            isPulseira: true,
+            selectable: true,
+            hasControls: false,
+            lockMovementX: true,
+            lockMovementY: true
         });
-    }
+
+        pulseira.scaleToWidth(800);
+        canvas.add(pulseira).sendToBack();
+        canvas.renderAll();
+        reorganizar();
+    });
+}
 
     // --- NOVA FUNÇÃO: ADICIONAR IMAGEM ---
     function uploadImagem(e) {
