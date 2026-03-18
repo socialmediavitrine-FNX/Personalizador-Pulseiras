@@ -222,7 +222,7 @@
     function baixarPNG() { 
         const l = document.createElement('a'); 
         l.download = 'minha-pulseira.png'; 
-        l.href = canvas.toDataURL({ multiplier: 3 }); // Qualidade extra para PNG
+        l.href = canvas.toDataURL({ multiplier: 3 }); 
         l.click(); 
     }
 
@@ -234,7 +234,29 @@
         l.click(); 
     }
 
-    function removerSelecionado() { canvas.getActiveObjects().forEach(o => canvas.remove(o)); canvas.discardActiveObject(); reestruturarAmbiente(); }
+    // --- NOVA LÓGICA DE PROTEÇÃO ---
+    function removerSelecionado() {
+        const ativos = canvas.getActiveObjects();
+        const pulseirasAtuais = canvas.getObjects().filter(obj => obj.isPulseira);
+        
+        ativos.forEach(o => {
+            // Se for uma pulseira, verifica se não é a última
+            if (o.isPulseira) {
+                if (pulseirasAtuais.length > 1) {
+                    canvas.remove(o);
+                } else {
+                    alert("Para o simulador funcionar, você precisa de pelo menos uma pulseira na tela.");
+                }
+            } else {
+                // Se for texto ou imagem, remove normalmente
+                canvas.remove(o);
+            }
+        });
+        
+        canvas.discardActiveObject();
+        reestruturarAmbiente();
+    }
+
     function toggleGuide() { const m = document.getElementById('guideModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
 
     const saved = localStorage.getItem('vitrine_project');
