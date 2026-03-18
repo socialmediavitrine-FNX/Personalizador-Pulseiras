@@ -24,11 +24,9 @@
         .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--primary); color: white; border: none; }
         
-        /* Controles de Zoom */
-        .zoom-control { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 5px 15px; border-radius: 20px; border: 1px solid #ddd; }
-
-        .workspace { flex: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; background: #cbd5e1; position: relative; }
-        canvas { box-shadow: 0 0 25px rgba(0,0,0,0.15); border-radius: 4px; }
+        /* Área de Trabalho com Contraste Melhorado */
+        .workspace { flex: 1; overflow: auto; padding: 60px; display: flex; justify-content: center; background: #475569; position: relative; }
+        canvas { box-shadow: 0 0 40px rgba(0,0,0,0.4); border-radius: 4px; }
         
         .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; }
         .btn-save { background: #0ea5e9; color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
@@ -40,8 +38,7 @@
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
     <div class="brand-contacts">
-        <div class="contact-unit"><span class="contact-label">Vendas / Representante</span><a href="https://wa.me/5518981212934" target="_blank" class="contact-link">🟢 (18) 98121-2934</a></div>
-        <div class="contact-unit"><span class="contact-label">Suporte / Fixo</span><a href="https://wa.me/551836424452" target="_blank" class="contact-link">📞 (18) 3642-4452</a></div>
+        <div class="contact-unit"><span class="contact-label">Representante</span><a href="https://wa.me/5518981212934" target="_blank" class="contact-link">🟢 (18) 98121-2934</a></div>
     </div>
 </div>
 
@@ -59,16 +56,16 @@
             <button class="btn" onclick="addTexto()">+ Texto</button>
             <button class="btn" onclick="document.getElementById('imgInp').click()">+ Imagem</button>
             <input type="file" id="imgInp" hidden onchange="uploadImg(this)">
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:30px; border:none; cursor:pointer;">
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:30px; border:none; cursor:pointer; border-radius:50%">
         </div>
     </div>
     <div class="group">
-        <label>3. Zoom</label>
-        <div class="zoom-control">
-            <button class="btn" onclick="adjustZoom(-0.1)">-</button>
-            <input type="range" min="0.5" max="2" step="0.1" value="1" id="zoomRange" oninput="setZoom(this.value)">
-            <button class="btn" onclick="adjustZoom(0.1)">+</button>
-        </div>
+        <label>3. Estilo da Fonte</label>
+        <select id="fontFamily" class="btn" onchange="mudarFonte(this.value)">
+            <option value="Inter">Padrão (Inter)</option>
+            <option value="Pacifico">Cursiva (Pacifico)</option>
+            <option value="Impact">Forte (Impact)</option>
+        </select>
     </div>
     <div class="group">
         <label>Gerenciar</label>
@@ -81,16 +78,15 @@
 </div>
 
 <div class="footer-actions">
-    <button class="btn-save" onclick="baixarImagem()">⬇ BAIXAR ARTE (PARA SHOPEE)</button>
-    <button class="btn-final" onclick="enviarWhatsApp()">✅ FINALIZAR COM REPRESENTANTE</button>
+    <button class="btn-save" onclick="baixarImagem()">⬇ BAIXAR ARTE</button>
+    <button class="btn-final" onclick="enviarWhatsApp()">✅ FINALIZAR NO WHATSAPP</button>
 </div>
 
 <script>
-    const canvas = new fabric.Canvas('c', { width: 1000, height: 500, backgroundColor: '#ffffff' });
+    const canvas = new fabric.Canvas('c', { width: 850, height: 600, backgroundColor: '#ffffff' });
 
-    // --- AUTO-SAVE (LocalStorage) ---
     function saveProject() {
-        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'hasControls', 'lockMovementX', 'lockMovementY', 'selectable']));
+        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable']));
         localStorage.setItem('vitrine_project', json);
     }
 
@@ -106,31 +102,12 @@
         }
     }
 
-    canvas.on('object:modified', saveProject);
-    canvas.on('object:added', saveProject);
-    canvas.on('object:removed', saveProject);
-
-    // --- ZOOM ---
-    function setZoom(value) {
-        canvas.setZoom(parseFloat(value));
-        document.getElementById('zoomRange').value = value;
-    }
-
-    function adjustZoom(delta) {
-        let newZoom = canvas.getZoom() + delta;
-        if (newZoom > 2) newZoom = 2;
-        if (newZoom < 0.5) newZoom = 0.5;
-        setZoom(newZoom);
-    }
-
-    // --- FUNÇÕES CORE ---
     function reestruturarAmbiente() {
         const objetos = canvas.getObjects();
         const pulseiras = objetos.filter(obj => obj.isPulseira);
         objetos.filter(obj => obj.isLegenda).forEach(l => canvas.remove(l));
+        
         let currentY = 40;
-        const espacamento = 320; 
-
         pulseiras.forEach((p) => {
             p.set({ top: currentY }).setCoords();
             const legenda = new fabric.Text(p.tipoRef.toUpperCase(), {
@@ -138,42 +115,28 @@
             });
             canvas.add(legenda);
             legenda.sendToBack();
-            currentY += espacamento;
+            currentY += 280; 
         });
-        canvas.setHeight(Math.max(500, currentY + 50));
+        canvas.setHeight(Math.max(600, currentY));
         canvas.renderAll();
     }
 
-function addPulseira(tipo) {
-        // Adicione esta linha para limpar o cache
-        const timestamp = new Date().getTime(); 
+    function addPulseira(tipo) {
+        const timestamp = new Date().getTime();
         const arquivoSVG = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
         
         fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
-            // Verificação de segurança
-            if (!objects || objects.length === 0) {
-                console.log("SVG vazio ou não encontrado");
-                return;
-            }
-
             const pulseiraSVG = fabric.util.groupSVGElements(objects, options);
             const larguraVisual = (tipo === 'adulto') ? 780 : 660;
 
-            // Ajuste de preenchimento para garantir que não venha transparente
             pulseiraSVG.getObjects().forEach(obj => {
                 obj.set('strokeWidth', 1.5);
-                if (!obj.fill) obj.set('fill', '#000000'); 
+                if (!obj.fill || obj.fill === 'none') obj.set('fill', '#000000');
             });
 
             pulseiraSVG.set({
-                left: 120, 
-                top: 0, 
-                isPulseira: true, 
-                tipoRef: tipo,
-                hasControls: false, 
-                lockMovementX: true, 
-                lockMovementY: true, 
-                selectable: true
+                left: 120, isPulseira: true, tipoRef: tipo,
+                hasControls: false, lockMovementX: true, lockMovementY: true, selectable: true
             });
 
             pulseiraSVG.scaleToWidth(larguraVisual);
@@ -183,42 +146,39 @@ function addPulseira(tipo) {
         });
     }
 
-function mudarCor(c) {
-    const objs = canvas.getActiveObjects();
-    if (objs.length === 0) return;
+    function addTexto() {
+        const t = new fabric.IText('Clique aqui', {
+            left: 300, top: 100, fontSize: 30, fill: '#333', 
+            fontFamily: document.getElementById('fontFamily').value
+        });
+        canvas.add(t);
+        canvas.setActiveObject(t);
+        t.bringToFront();
+    }
 
-    objs.forEach(o => {
-        // Se for texto
-        if (o.type === 'i-text' || o.type === 'text') {
-            o.set('fill', c);
-        } 
-        // Se for a pulseira (SVG agrupado)
-        else if (o.isPulseira) {
-            o.getObjects().forEach(child => {
-                child.set('fill', c);
-                child.set('stroke', c); // Garante que contornos também mudem
-            });
+    function mudarCor(c) {
+        const objs = canvas.getActiveObjects();
+        objs.forEach(o => {
+            if (o.type === 'i-text' || o.type === 'text') o.set('fill', c);
+            else if (o.isPulseira) {
+                o.getObjects().forEach(child => {
+                    child.set('fill', c);
+                    child.set('stroke', c);
+                });
+            }
+        });
+        canvas.renderAll();
+        saveProject();
+    }
+
+    function mudarFonte(fonte) {
+        const obj = canvas.getActiveObject();
+        if (obj && (obj.type === 'i-text' || obj.type === 'text')) {
+            obj.set('fontFamily', fonte);
+            canvas.renderAll();
+            saveProject();
         }
-    });
-    canvas.renderAll();
-    saveProject();
-}
-
-function addTexto() {
-    const t = new fabric.IText('Clique aqui', {
-        left: 250, // Posição mais centralizada
-        top: 150, 
-        fontSize: 30, 
-        fill: '#ffffff', // Cor branca para dar contraste inicial com a pulseira preta
-        fontFamily: 'Inter', // Garante uma fonte carregada
-        fontWeight: 'bold'
-    });
-    
-    canvas.add(t);
-    canvas.setActiveObject(t);
-    t.bringToFront(); // FORÇA O TEXTO PARA A FRENTE DE TUDO
-    canvas.renderAll();
-}
+    }
 
     function uploadImg(input) {
         if (input.files && input.files[0]) {
@@ -228,6 +188,7 @@ function addTexto() {
                     img.scaleToWidth(100);
                     canvas.add(img);
                     canvas.setActiveObject(img);
+                    img.bringToFront();
                 });
             };
             reader.readAsDataURL(input.files[0]);
@@ -243,16 +204,15 @@ function addTexto() {
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'arte-vitrine.png';
+        link.download = 'arte-pulseira.png';
         link.href = dataURL;
         link.click();
     }
 
     function enviarWhatsApp() {
-        window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte no simulador e estou enviando.`);
+        window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte e estou enviando.`);
     }
 
-    // Iniciar
     loadProject();
 </script>
 </body>
