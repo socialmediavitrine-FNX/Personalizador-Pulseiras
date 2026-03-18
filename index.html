@@ -18,8 +18,9 @@
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 15px; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
-        .btn:hover { background: #f8fafc; }
+        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn:hover:not(:disabled) { background: #f8fafc; border-color: #999; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-add { background: var(--primary); color: white; border: none; }
         
         .color-palette { display: flex; gap: 4px; margin-top: 4px; }
@@ -59,26 +60,23 @@
     </div>
 
     <div class="group">
-        <label>3. Cor da Seleção</label>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:32px; border:1px solid #ccc; cursor:pointer;">
-            <div class="color-palette">
-                <div class="color-dot" style="background:#000000" onclick="mudarCor('#000000')"></div>
-                <div class="color-dot" style="background:#ffffff" onclick="mudarCor('#ffffff')"></div>
-                <div class="color-dot" style="background:#ff0000" onclick="mudarCor('#ff0000')"></div>
-                <div class="color-dot" style="background:#007bff" onclick="mudarCor('#007bff')"></div>
-                <div class="color-dot" style="background:#22c55e" onclick="mudarCor('#22c55e')"></div>
-            </div>
+        <label>3. Histórico</label>
+        <div style="display:flex; gap:5px;">
+            <button id="btnUndo" class="btn" onclick="undo()" title="Ctrl+Z">↩ Desfazer</button>
+            <button id="btnRedo" class="btn" onclick="redo()" title="Ctrl+Y">↪ Refazer</button>
         </div>
     </div>
 
     <div class="group">
-        <label>4. Fonte</label>
-        <select id="fontFamily" class="btn" onchange="mudarFonte(this.value)">
-            <option value="Inter">Padrão (Inter)</option>
-            <option value="Pacifico">Cursiva (Pacifico)</option>
-            <option value="Impact">Forte (Impact)</option>
-        </select>
+        <label>4. Cor e Fonte</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:30px; height:32px; border:1px solid #ccc; cursor:pointer;">
+            <select id="fontFamily" class="btn" onchange="mudarFonte(this.value)">
+                <option value="Inter">Padrão (Inter)</option>
+                <option value="Pacifico">Cursiva (Pacifico)</option>
+                <option value="Impact">Forte (Impact)</option>
+            </select>
+        </div>
     </div>
 
     <div class="group" style="border:none;">
@@ -97,19 +95,85 @@
 </div>
 
 <script>
-    // Aumentado para 1000px de largura para não cortar as pontas
-    const canvas = new fabric.Canvas('c', { width: 1000, height: 650, backgroundColor: '#ffffff' });
+    // Configurações Iniciais - Fundo cinza claro para destacar pulseiras brancas
+    const canvas = new fabric.Canvas('c', { 
+        width: 1000, 
+        height: 650, 
+        backgroundColor: '#e2e8f0' // Cinza claro estratégico
+    });
 
-    function saveProject() {
+    // Sistema de Desfazer/Refazer (History)
+    let history = [];
+    let historyIndex = -1;
+    let isTransitioning = false;
+
+    function saveHistory() {
+        if (isTransitioning) return;
         const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable']));
+        
+        // Remove histórico futuro se houver uma nova ação após desfazer
+        if (historyIndex < history.length - 1) {
+            history = history.slice(0, historyIndex + 1);
+        }
+        
+        history.push(json);
+        historyIndex++;
+        updateUndoButtons();
         localStorage.setItem('vitrine_project', json);
     }
+
+    function undo() {
+        if (historyIndex <= 0) return;
+        isTransitioning = true;
+        historyIndex--;
+        applyHistory();
+    }
+
+    function redo() {
+        if (historyIndex >= history.length - 1) return;
+        isTransitioning = true;
+        historyIndex++;
+        applyHistory();
+    }
+
+    function applyHistory() {
+        canvas.loadFromJSON(history[historyIndex], () => {
+            canvas.renderAll();
+            isTransitioning = false;
+            updateUndoButtons();
+        });
+    }
+
+    function updateUndoButtons() {
+        document.getElementById('btnUndo').disabled = (historyIndex <= 0);
+        document.getElementById('btnRedo').disabled = (historyIndex >= history.length - 1);
+    }
+
+    // Atalhos de Teclado
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'z') { e.preventDefault(); undo(); }
+            if (e.key === 'y') { e.preventDefault(); redo(); }
+        }
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (canvas.getActiveObject() && !canvas.getActiveObject().isEditing) {
+                removerSelecionado();
+            }
+        }
+    });
+
+    canvas.on('object:added', saveHistory);
+    canvas.on('object:modified', saveHistory);
+    canvas.on('object:removed', saveHistory);
 
     function loadProject() {
         const saved = localStorage.getItem('vitrine_project');
         if (saved) {
             canvas.loadFromJSON(saved, () => {
                 canvas.renderAll();
+                history = [saved];
+                historyIndex = 0;
+                updateUndoButtons();
                 setTimeout(reestruturarAmbiente, 500);
             });
         } else {
@@ -120,20 +184,18 @@
     function reestruturarAmbiente() {
         const objetos = canvas.getObjects();
         const pulseiras = objetos.filter(obj => obj.isPulseira);
-        
-        // Remove legendas antigas para não duplicar
         objetos.filter(obj => obj.isLegenda).forEach(l => canvas.remove(l));
         
-        let currentY = 50;
+        let currentY = 70; // Aumentado o topo inicial
         pulseiras.forEach((p) => {
             p.set({ top: currentY, left: 40 }).setCoords();
             
-            // Texto da Info (Legenda) com mais afastamento lateral
+            // Legenda "ADULTO/INFANTIL" acima da pulseira
             const legenda = new fabric.Text(p.tipoRef.toUpperCase(), {
-                left: 15, // Posicionado à esquerda com respiro
-                top: currentY + 10, 
-                fontSize: 10, 
-                fill: '#94a3b8', 
+                left: 45, 
+                top: currentY - 25, // Posicionado acima da pulseira
+                fontSize: 12, 
+                fill: '#475569', 
                 selectable: false, 
                 isLegenda: true, 
                 fontWeight: 'bold',
@@ -150,16 +212,11 @@
     }
 
     function addPulseira(tipo) {
-        const timestamp = new Date().getTime();
-        const arquivoSVG = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
+        const arquivoSVG = (tipo === 'adulto') ? `pulseira-adulto.svg` : `pulseira-infantil.svg`;
         
         fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
             const pulseiraSVG = fabric.util.groupSVGElements(objects, options);
             const larguraVisual = (tipo === 'adulto') ? 900 : 750;
-
-            pulseiraSVG.getObjects().forEach(obj => {
-                if (!obj.fill || obj.fill === 'none') obj.set('fill', '#333333');
-            });
 
             pulseiraSVG.set({
                 isPulseira: true, 
@@ -174,27 +231,22 @@
             canvas.add(pulseiraSVG);
             pulseiraSVG.sendToBack();
             reestruturarAmbiente();
-            saveProject();
         });
     }
 
     function addTexto() {
-        const selectedFont = document.getElementById('fontFamily').value;
         const t = new fabric.IText('Clique aqui', {
-            left: 450, top: 100, fontSize: 35, fill: '#333', 
-            fontFamily: selectedFont,
+            left: 450, top: 200, fontSize: 35, fill: '#333', 
+            fontFamily: document.getElementById('fontFamily').value,
             fontWeight: 'bold'
         });
         canvas.add(t);
         canvas.setActiveObject(t);
         t.bringToFront();
-        saveProject();
     }
 
     function mudarCor(c) {
         const objs = canvas.getActiveObjects();
-        if (objs.length === 0) return;
-
         objs.forEach(o => {
             if (o.type === 'i-text' || o.type === 'text') {
                 o.set('fill', c);
@@ -206,15 +258,15 @@
             }
         });
         canvas.renderAll();
-        saveProject();
+        saveHistory();
     }
 
     function mudarFonte(fonte) {
         const obj = canvas.getActiveObject();
-        if (obj && (obj.type === 'i-text' || obj.type === 'text')) {
+        if (obj && obj.type.includes('text')) {
             obj.set('fontFamily', fonte);
             canvas.renderAll();
-            saveProject();
+            saveHistory();
         }
     }
 
@@ -227,7 +279,6 @@
                     canvas.add(img);
                     canvas.setActiveObject(img);
                     img.bringToFront();
-                    saveProject();
                 });
             };
             reader.readAsDataURL(input.files[0]);
@@ -238,19 +289,18 @@
         canvas.getActiveObjects().forEach(obj => canvas.remove(obj));
         canvas.discardActiveObject();
         reestruturarAmbiente();
-        saveProject();
     }
 
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'minha-pulseira-personalizada.png';
+        link.download = 'minha-arte.png';
         link.href = dataURL;
         link.click();
     }
 
     function enviarWhatsApp() {
-        window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Acabei de montar minha arte no simulador e gostaria de finalizar o pedido.`);
+        window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte e estou enviando.`);
     }
 
     loadProject();
