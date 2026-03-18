@@ -25,11 +25,17 @@
 
         /* Cores */
         .color-palette { display: flex; gap: 6px; align-items: center; }
-        .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); transition: 0.2s; }
+        .color-dot:hover { transform: scale(1.1); }
 
-        /* Workspace Mobile Friendly */
-        .workspace { flex: 1; overflow: auto; padding: 30px; background: #475569; position: relative; -webkit-overflow-scrolling: touch; }
-        canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 4px; touch-action: manipulation; }
+        /* Workspace Anti-Seleção Mobile */
+        .workspace { flex: 1; overflow: auto; padding: 30px; background: #475569; position: relative; -webkit-overflow-scrolling: touch; user-select: none; }
+        canvas { 
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); 
+            border-radius: 4px; 
+            touch-action: pan-x pan-y; 
+            -webkit-tap-highlight-color: transparent;
+        }
         
         /* Modal */
         #guideModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
@@ -46,8 +52,8 @@
 <div id="guideModal">
     <div class="modal-content">
         <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Como usar</h2>
-        <p style="font-size:14px; color:#444;">1. Adicione a pulseira (Adulto ou Infantil).<br>2. Use o <b>+ Texto</b> ou <b>+ Imagem</b> para criar.<br>3. Clique no item e selecione uma cor da paleta.<br>4. <b>Atalhos:</b> Ctrl+C/V (Copiar) e Ctrl+Z (Voltar).</p>
-        <div class="kit-alert">⚠️ Comprou um KIT? Adicione todas as pulseiras do pedido aqui para personalizar!</div>
+        <p style="font-size:14px; color:#444;">1. Adicione a pulseira.<br>2. Use o <b>+ Texto</b> ou <b>+ Imagem</b>.<br>3. Clique no item e selecione uma cor.<br>4. <b>No Mobile:</b> Use dois dedos no fundo cinza para rolar a página.</p>
+        <div class="kit-alert">⚠️ KIT: Personalize todas as pulseiras do pedido aqui!</div>
         <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">ENTENDI!</button>
     </div>
 </div>
@@ -74,19 +80,19 @@
         </div>
     </div>
     <div class="group">
-        <label>3. Cores</label>
+        <label>3. Cores Principais</label>
         <div class="color-palette">
-            <div class="color-dot" style="background:#FF1493" onclick="mudarCor('#FF1493')"></div>
-            <div class="color-dot" style="background:#0000FF" onclick="mudarCor('#0000FF')"></div>
-            <div class="color-dot" style="background:#000000" onclick="mudarCor('#000000')"></div>
-            <div class="color-dot" style="background:#CCFF00" onclick="mudarCor('#CCFF00')"></div>
-            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:25px; height:25px; cursor:pointer;">
+            <div class="color-dot" style="background:#FF1493" title="Pink" onclick="mudarCor('#FF1493')"></div>
+            <div class="color-dot" style="background:#0000FF" title="Azul" onclick="mudarCor('#0000FF')"></div>
+            <div class="color-dot" style="background:#000000" title="Preto" onclick="mudarCor('#000000')"></div>
+            <div class="color-dot" style="background:#CCFF00" title="Fosforescente" onclick="mudarCor('#CCFF00')"></div>
+            <input type="color" id="colorPicker" onchange="mudarCor(this.value)" style="width:28px; height:28px; cursor:pointer; border:none; background:none;">
         </div>
     </div>
     <div class="group" style="border:none;">
         <label>4. Ações</label>
         <div style="display:flex; gap:4px;">
-            <button class="btn" onclick="undo()">↩</button>
+            <button class="btn" onclick="undo()" title="Desfazer">↩</button>
             <button class="btn" style="color:var(--danger)" onclick="removerSelecionado()">🗑</button>
         </div>
     </div>
@@ -103,11 +109,24 @@
 </div>
 
 <script>
+    // Inicialização com trava de seleção múltipla para Mobile
     const canvas = new fabric.Canvas('c', { 
-        width: 1000, height: 650, backgroundColor: '#e2e8f0',
-        allowTouchScrolling: true // Permite scroll no mobile tocando no canvas
+        width: 1000, 
+        height: 650, 
+        backgroundColor: '#ffffff',
+        allowTouchScrolling: true,
+        selection: false // DESATIVA o box roxo de seleção por arraste
     });
+
     let _clipboard;
+
+    // Impede seleção de múltiplos objetos (evita confusão no touch)
+    canvas.on('selection:created', (e) => {
+        if (e.selected && e.selected.length > 1) {
+            canvas.discardActiveObject();
+            canvas.requestRenderAll();
+        }
+    });
 
     // --- CLIPBOARD ---
     function Copy() {
@@ -119,11 +138,7 @@
         _clipboard.clone(clonedObj => {
             canvas.discardActiveObject();
             clonedObj.set({ left: clonedObj.left + 25, top: clonedObj.top + 25, evented: true });
-            if (clonedObj.type === 'activeSelection') {
-                clonedObj.canvas = canvas;
-                clonedObj.forEachObject(obj => canvas.add(obj));
-                clonedObj.setCoords();
-            } else { canvas.add(clonedObj); }
+            canvas.add(clonedObj);
             _clipboard.top += 25; _clipboard.left += 25;
             canvas.setActiveObject(clonedObj);
             canvas.requestRenderAll();
@@ -157,7 +172,8 @@
 
     // --- PULSEIRAS ---
     function addPulseira(tipo) {
-        fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}`, (objects, options) => {
+        const ts = new Date().getTime();
+        fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}?t=${ts}`, (objects, options) => {
             const p = fabric.util.groupSVGElements(objects, options);
             p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true });
             p.scaleToWidth(tipo === 'adulto' ? 900 : 750);
@@ -172,7 +188,7 @@
         pulseiras.forEach(p => {
             p.set({ top: currentY, left: 45 }).setCoords();
             const legenda = new fabric.Text(p.tipoRef.toUpperCase(), {
-                left: 50, top: currentY - 25, fontSize: 12, fill: '#475569', selectable: false, isLegenda: true, fontWeight: 'bold'
+                left: 50, top: currentY - 25, fontSize: 11, fill: '#94a3b8', selectable: false, isLegenda: true, fontWeight: 'bold'
             });
             canvas.add(legenda); currentY += 280;
         });
@@ -181,9 +197,17 @@
 
     // --- COR E TEXTO ---
     function mudarCor(c) {
-        canvas.getActiveObjects().forEach(o => {
+        const activeObjects = canvas.getActiveObjects();
+        if (activeObjects.length === 0) return;
+
+        activeObjects.forEach(o => {
             if (o.type.includes('text')) o.set('fill', c);
-            else if (o.isPulseira) o.getObjects().forEach(child => { child.set('fill', c); child.set('stroke', c); });
+            else if (o.isPulseira) {
+                o.getObjects().forEach(child => { 
+                    child.set('fill', c); 
+                    child.set('stroke', c); 
+                });
+            }
             else if (o.type === 'image') {
                 o.filters = [new fabric.Image.filters.BlendColor({ color: c, mode: 'tint', alpha: 1 })];
                 o.applyFilters();
@@ -191,23 +215,55 @@
         });
         canvas.renderAll(); saveHistory();
     }
+
     function addTexto() { 
-        const t = new fabric.IText('Clique aqui', { left: 450, top: 200, fontSize: 35, fill: '#333', fontFamily: 'Inter', fontWeight: 'bold' }); 
+        const t = new fabric.IText('Clique aqui', { 
+            left: 400, top: 200, fontSize: 35, fill: '#333', 
+            fontFamily: 'Inter', fontWeight: 'bold', cornerSize: 12, transparentCorners: false 
+        }); 
         canvas.add(t); canvas.setActiveObject(t); 
     }
-    function uploadImg(input) { if (input.files[0]) { const r = new FileReader(); r.onload = (e) => { fabric.Image.fromURL(e.target.result, img => { img.scaleToWidth(120); canvas.add(img); canvas.setActiveObject(img); }); }; r.readAsDataURL(input.files[0]); } }
+
+    function uploadImg(input) { 
+        if (input.files[0]) { 
+            const r = new FileReader(); 
+            r.onload = (e) => { 
+                fabric.Image.fromURL(e.target.result, img => { 
+                    img.scaleToWidth(120); 
+                    canvas.add(img); 
+                    canvas.setActiveObject(img); 
+                }); 
+            }; 
+            r.readAsDataURL(input.files[0]); 
+        } 
+    }
     
     // --- EXPORTAR ---
-    function baixarPNG() { const l = document.createElement('a'); l.download = 'arte.png'; l.href = canvas.toDataURL({ multiplier: 2 }); l.click(); }
-    function exportarSVG() { const b = new Blob([canvas.toSVG({ width: 1000, height: canvas.getHeight() })], { type: 'image/svg+xml' }); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'arte.svg'; l.click(); }
-    function enviarWhatsApp() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte.`); }
+    function baixarPNG() { const l = document.createElement('a'); l.download = 'minha-arte.png'; l.href = canvas.toDataURL({ multiplier: 2 }); l.click(); }
+    function exportarSVG() { 
+        const b = new Blob([canvas.toSVG({ width: 1000, height: canvas.getHeight() })], { type: 'image/svg+xml' }); 
+        const l = document.createElement('a'); 
+        l.href = URL.createObjectURL(b); 
+        l.download = 'projeto-corel.svg'; 
+        l.click(); 
+    }
+    function enviarWhatsApp() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Acabei de montar minha arte personalizada no simulador.`); }
     function removerSelecionado() { canvas.getActiveObjects().forEach(o => canvas.remove(o)); canvas.discardActiveObject(); reestruturarAmbiente(); }
     function toggleGuide() { const m = document.getElementById('guideModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
 
-    // Carregamento
+    // Carregamento Inicial
     const saved = localStorage.getItem('vitrine_project');
-    if (saved) { canvas.loadFromJSON(saved, () => { canvas.renderAll(); history = [saved]; historyIndex = 0; setTimeout(reestruturarAmbiente, 500); }); }
-    else { addPulseira('adulto'); toggleGuide(); }
+    if (saved) { 
+        canvas.loadFromJSON(saved, () => { 
+            canvas.renderAll(); 
+            history = [saved]; 
+            historyIndex = 0; 
+            setTimeout(reestruturarAmbiente, 500); 
+        }); 
+    } else { 
+        addPulseira('adulto'); 
+        toggleGuide(); 
+    }
 </script>
 </body>
 </html>
