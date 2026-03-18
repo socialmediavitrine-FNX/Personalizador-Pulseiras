@@ -144,17 +144,36 @@
         canvas.renderAll();
     }
 
-    function addPulseira(tipo) {
-        const arquivoSVG = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
+function addPulseira(tipo) {
+        // Adicione esta linha para limpar o cache
+        const timestamp = new Date().getTime(); 
+        const arquivoSVG = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
+        
         fabric.loadSVGFromURL(arquivoSVG, function(objects, options) {
+            // Verificação de segurança
+            if (!objects || objects.length === 0) {
+                console.log("SVG vazio ou não encontrado");
+                return;
+            }
+
             const pulseiraSVG = fabric.util.groupSVGElements(objects, options);
             const larguraVisual = (tipo === 'adulto') ? 780 : 660;
 
-            pulseiraSVG.getObjects().forEach(obj => obj.set('strokeWidth', 1.5));
+            // Ajuste de preenchimento para garantir que não venha transparente
+            pulseiraSVG.getObjects().forEach(obj => {
+                obj.set('strokeWidth', 1.5);
+                if (!obj.fill) obj.set('fill', '#000000'); 
+            });
 
             pulseiraSVG.set({
-                left: 120, top: 0, isPulseira: true, tipoRef: tipo,
-                hasControls: false, lockMovementX: true, lockMovementY: true, selectable: true
+                left: 120, 
+                top: 0, 
+                isPulseira: true, 
+                tipoRef: tipo,
+                hasControls: false, 
+                lockMovementX: true, 
+                lockMovementY: true, 
+                selectable: true
             });
 
             pulseiraSVG.scaleToWidth(larguraVisual);
