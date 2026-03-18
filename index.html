@@ -83,7 +83,7 @@
 </div>
 
 <script>
-    const canvas = new fabric.Canvas('c', { width: 850, height: 600, backgroundColor: '#ffffff' });
+    const canvas = new fabric.Canvas('c', { width: 1000, height: 600, backgroundColor: '#9BADCC' });
 
     function saveProject() {
         const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable']));
@@ -134,10 +134,16 @@
                 if (!obj.fill || obj.fill === 'none') obj.set('fill', '#000000');
             });
 
-            pulseiraSVG.set({
-                left: 120, isPulseira: true, tipoRef: tipo,
-                hasControls: false, lockMovementX: true, lockMovementY: true, selectable: true
-            });
+// Procure por esta linha dentro da função addPulseira
+pulseiraSVG.set({
+    left: 25, // Ajustado de 120 para 25 para aproveitar o novo espaço do canvas
+    isPulseira: true, 
+    tipoRef: tipo,
+    hasControls: false, 
+    lockMovementX: true, 
+    lockMovementY: true, 
+    selectable: true
+});
 
             pulseiraSVG.scaleToWidth(larguraVisual);
             canvas.add(pulseiraSVG);
