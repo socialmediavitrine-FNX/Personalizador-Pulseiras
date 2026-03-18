@@ -10,34 +10,57 @@
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --danger: #ef4444; --success: #22c55e; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
+        /* Header & Toolbar */
         .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .brand-logo img { height: 45px; display: block; }
-        .contact-link { color: white; text-decoration: none; background: rgba(255,255,255,0.15); padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; }
-
         .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; z-index: 10; }
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 15px; }
-        label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
         
         .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn:hover:not(:disabled) { background: #f8fafc; border-color: #999; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-add { background: var(--primary); color: white; border: none; }
-        
+        .btn-guide { background: #6366f1; color: white; border: none; }
+
+        /* Workspace */
         .workspace { flex: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; background: #475569; position: relative; }
         canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 4px; }
         
+        /* Modal do Guia */
+        #guideModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; position: relative; line-height: 1.6; }
+        .modal-content h2 { color: var(--vitrine-blue); margin-top: 0; }
+        .modal-content ul { padding-left: 20px; }
+        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; font-weight: bold; }
+        .kit-alert { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border-left: 5px solid #ffeeba; margin: 15px 0; font-weight: bold; }
+
         .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; }
-        .btn-exp { border: none; padding: 12px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; color: white; display: flex; align-items: center; gap: 8px; }
-        .bg-png { background: #0ea5e9; }
-        .bg-svg { background: #f59e0b; }
-        .bg-wpp { background: var(--success); }
+        .btn-exp { border: none; padding: 12px 20px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; color: white; }
     </style>
 </head>
 <body>
 
+<div id="guideModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="toggleGuide()">&times;</span>
+        <h2>🎨 Guia de Personalização</h2>
+        <p>Bem-vindo! Aqui você pode montar sua arte exatamente como deseja:</p>
+        <ul>
+            <li><strong>+ Adulto / + Infantil:</strong> Adicione os modelos de pulseira ao seu projeto.</li>
+            <li><strong>+ Texto / + Imagem:</strong> Insira nomes ou logos personalizados.</li>
+            <li><strong>Cor:</strong> Selecione um elemento e escolha a cor desejada (vale para pulseiras, textos e logos!).</li>
+            <li><strong>Atalhos:</strong> Use <b>Ctrl+C / Ctrl+V</b> para copiar elementos e <b>Ctrl+Z</b> para desfazer ações.</li>
+        </ul>
+        <div class="kit-alert">
+            ⚠️ ATENÇÃO: Se você comprou um KIT (2 ou 3 pulseiras), certifique-se de adicionar e personalizar a quantidade exata de pulseiras correspondente ao seu pedido na plataforma!
+        </div>
+        <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">ENTENDI, VAMOS COMEÇAR!</button>
+    </div>
+</div>
+
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
-    <a href="https://wa.me/5518981212934" target="_blank" class="contact-link">🟢 WhatsApp Suporte</a>
+    <button class="btn btn-guide" onclick="toggleGuide()">📖 GUIA DE USO</button>
 </div>
 
 <div class="toolbar">
@@ -48,25 +71,22 @@
             <button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">+ Infantil</button>
         </div>
     </div>
-
     <div class="group">
-        <label>2. Adicionar</label>
+        <label>2. Customizar</label>
         <div style="display:flex; gap:5px;">
             <button class="btn" onclick="addTexto()">+ Texto</button>
             <button class="btn" onclick="document.getElementById('imgInp').click()">+ Imagem</button>
             <input type="file" id="imgInp" hidden onchange="uploadImg(this)">
         </div>
     </div>
-
     <div class="group">
         <label>3. Histórico</label>
         <div style="display:flex; gap:5px;">
             <button id="btnUndo" class="btn" onclick="undo()">↩</button>
             <button id="btnRedo" class="btn" onclick="redo()">↪</button>
-            <button class="btn" style="color:var(--danger)" onclick="removerSelecionado()">🗑 Apagar</button>
+            <button class="btn" style="color:var(--danger)" onclick="removerSelecionado()">🗑</button>
         </div>
     </div>
-
     <div class="group">
         <label>4. Cor e Fonte</label>
         <div style="display:flex; align-items:center; gap:8px;">
@@ -85,74 +105,84 @@
 </div>
 
 <div class="footer-actions">
-    <button class="btn-exp bg-png" onclick="baixarPNG()">🖼 BAIXAR PNG</button>
-    <button class="btn-exp bg-svg" onclick="exportarSVG()">🎨 EXPORTAR SVG (COREL)</button>
-    <button class="btn-exp bg-wpp" onclick="enviarWhatsApp()">✅ ENVIAR PEDIDO</button>
+    <button class="btn-exp" style="background:#0ea5e9" onclick="baixarPNG()">🖼 BAIXAR PNG</button>
+    <button class="btn-exp" style="background:#f59e0b" onclick="exportarSVG()">🎨 EXPORTAR SVG (COREL)</button>
+    <button class="btn-exp" style="background:#22c55e" onclick="enviarWhatsApp()">✅ ENVIAR PEDIDO</button>
 </div>
 
 <script>
-    const canvas = new fabric.Canvas('c', { 
-        width: 1000, height: 650, backgroundColor: '#e2e8f0' 
+    const canvas = new fabric.Canvas('c', { width: 1000, height: 650, backgroundColor: '#e2e8f0' });
+    let _clipboard;
+
+    // --- GUIA ---
+    function toggleGuide() {
+        const modal = document.getElementById('guideModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // --- COPIAR / COLAR ---
+    function Copy() {
+        canvas.getActiveObject().clone(function(cloned) {
+            _clipboard = cloned;
+        }, ['isPulseira', 'tipoRef', 'selectable']);
+    }
+
+    function Paste() {
+        if (!_clipboard) return;
+        _clipboard.clone(function(clonedObj) {
+            canvas.discardActiveObject();
+            clonedObj.set({
+                left: clonedObj.left + 20,
+                top: clonedObj.top + 20,
+                evented: true,
+            });
+            if (clonedObj.type === 'activeSelection') {
+                clonedObj.canvas = canvas;
+                clonedObj.forEachObject(function(obj) { canvas.add(obj); });
+                clonedObj.setCoords();
+            } else {
+                canvas.add(clonedObj);
+            }
+            _clipboard.top += 20;
+            _clipboard.left += 20;
+            canvas.setActiveObject(clonedObj);
+            canvas.requestRenderAll();
+        }, ['isPulseira', 'tipoRef', 'selectable']);
+    }
+
+    // --- ATALHOS ---
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'c') { Copy(); }
+            if (e.key === 'v') { Paste(); }
+            if (e.key === 'z') { undo(); }
+            if (e.key === 'y') { redo(); }
+        }
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (canvas.getActiveObject() && !canvas.getActiveObject().isEditing) removerSelecionado();
+        }
     });
 
-    let history = [];
-    let historyIndex = -1;
-    let isTransitioning = false;
-
-    // --- SISTEMA DE HISTÓRICO ---
+    // --- RESTANTE DO CÓDIGO (HISTÓRICO, PULSEIRAS, CORES) ---
+    let history = []; let historyIndex = -1; let isTransitioning = false;
     function saveHistory() {
         if (isTransitioning) return;
         const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable']));
         if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
-        history.push(json);
-        historyIndex++;
+        history.push(json); historyIndex++;
         updateUndoButtons();
         localStorage.setItem('vitrine_project', json);
     }
-
-    function undo() { if (historyIndex > 0) { isTransitioning = true; historyIndex--; applyHistory(); } }
-    function redo() { if (historyIndex < history.length - 1) { isTransitioning = true; historyIndex++; applyHistory(); } }
-    
-    function applyHistory() {
-        canvas.loadFromJSON(history[historyIndex], () => {
-            canvas.renderAll();
-            isTransitioning = false;
-            updateUndoButtons();
-        });
-    }
-
     function updateUndoButtons() {
         document.getElementById('btnUndo').disabled = (historyIndex <= 0);
         document.getElementById('btnRedo').disabled = (historyIndex >= history.length - 1);
     }
+    function undo() { if (historyIndex > 0) { isTransitioning = true; historyIndex--; applyHistory(); } }
+    function redo() { if (historyIndex < history.length - 1) { isTransitioning = true; historyIndex++; applyHistory(); } }
+    function applyHistory() { canvas.loadFromJSON(history[historyIndex], () => { canvas.renderAll(); isTransitioning = false; updateUndoButtons(); }); }
+    
+    canvas.on('object:added', saveHistory); canvas.on('object:modified', saveHistory); canvas.on('object:removed', saveHistory);
 
-    canvas.on('object:added', saveHistory);
-    canvas.on('object:modified', saveHistory);
-    canvas.on('object:removed', saveHistory);
-
-    // --- FUNÇÕES DE COR ---
-    function mudarCor(c) {
-        const objs = canvas.getActiveObjects();
-        objs.forEach(o => {
-            if (o.type === 'i-text' || o.type === 'text') {
-                o.set('fill', c);
-            } else if (o.isPulseira) {
-                o.getObjects().forEach(child => { child.set('fill', c); child.set('stroke', c); });
-            } else if (o.type === 'image') {
-                // Filtro de Cor para Imagens (Ex: Logos)
-                o.filters = [new fabric.Image.filters.BlendColor({
-                    color: c,
-                    mode: 'tint',
-                    alpha: 1
-                })];
-                o.applyFilters();
-            }
-        });
-        canvas.renderAll();
-        saveHistory();
-    }
-
-    // --- FUNÇÕES DE ADIÇÃO ---
     function addPulseira(tipo) {
         const timestamp = new Date().getTime();
         const arquivo = (tipo === 'adulto') ? `pulseira-adulto.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
@@ -160,9 +190,7 @@
             const p = fabric.util.groupSVGElements(objects, options);
             p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true });
             p.scaleToWidth(tipo === 'adulto' ? 900 : 750);
-            canvas.add(p);
-            p.sendToBack();
-            reestruturarAmbiente();
+            canvas.add(p); p.sendToBack(); reestruturarAmbiente();
         });
     }
 
@@ -171,8 +199,7 @@
             left: 450, top: 200, fontSize: 35, fill: '#333', 
             fontFamily: document.getElementById('fontFamily').value, fontWeight: 'bold'
         });
-        canvas.add(t);
-        canvas.setActiveObject(t);
+        canvas.add(t); canvas.setActiveObject(t);
     }
 
     function uploadImg(input) {
@@ -180,13 +207,23 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 fabric.Image.fromURL(e.target.result, (img) => {
-                    img.scaleToWidth(120);
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
+                    img.scaleToWidth(120); canvas.add(img); canvas.setActiveObject(img);
                 });
             };
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    function mudarCor(c) {
+        canvas.getActiveObjects().forEach(o => {
+            if (o.type.includes('text')) o.set('fill', c);
+            else if (o.isPulseira) o.getObjects().forEach(child => { child.set('fill', c); child.set('stroke', c); });
+            else if (o.type === 'image') {
+                o.filters = [new fabric.Image.filters.BlendColor({ color: c, mode: 'tint', alpha: 1 })];
+                o.applyFilters();
+            }
+        });
+        canvas.renderAll(); saveHistory();
     }
 
     function reestruturarAmbiente() {
@@ -198,56 +235,35 @@
             const legenda = new fabric.Text(p.tipoRef.toUpperCase(), {
                 left: 45, top: currentY - 25, fontSize: 12, fill: '#475569', selectable: false, isLegenda: true, fontWeight: 'bold'
             });
-            canvas.add(legenda);
-            currentY += 280;
+            canvas.add(legenda); currentY += 280;
         });
-        canvas.setHeight(Math.max(650, currentY));
-        canvas.renderAll();
+        canvas.setHeight(Math.max(650, currentY)); canvas.renderAll();
     }
 
-    // --- EXPORTAÇÃO (O CHEQUE-MATE) ---
-    function baixarPNG() {
-        const link = document.createElement('a');
-        link.download = 'arte-vitrine.png';
-        link.href = canvas.toDataURL({ format: 'png', multiplier: 2 });
-        link.click();
+    function baixarPNG() { 
+        const link = document.createElement('a'); link.download = 'arte-vitrine.png';
+        link.href = canvas.toDataURL({ format: 'png', multiplier: 2 }); link.click();
     }
 
     function exportarSVG() {
-        const svgData = canvas.toSVG({
-            width: 1000,
-            height: canvas.getHeight(),
-            viewBox: { x: 0, y: 0, width: 1000, height: canvas.getHeight() }
-        });
-        const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'arte-para-corel.svg';
-        link.click();
+        const svgData = canvas.toSVG({ width: 1000, height: canvas.getHeight() });
+        const blob = new Blob([svgData], { type: 'image/svg+xml' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+        link.download = 'arte-para-corel.svg'; link.click();
     }
 
-    function enviarWhatsApp() {
-        window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte e estou enviando.`);
-    }
-
+    function enviarWhatsApp() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte e estou enviando.`); }
     function mudarFonte(f) { const o = canvas.getActiveObject(); if (o && o.type.includes('text')) { o.set('fontFamily', f); canvas.renderAll(); saveHistory(); } }
     function removerSelecionado() { canvas.getActiveObjects().forEach(o => canvas.remove(o)); canvas.discardActiveObject(); reestruturarAmbiente(); }
 
-    window.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.key === 'z') undo();
-        if (e.ctrlKey && e.key === 'y') redo();
-    });
-
-    // Início
+    // Auto-carregamento e Guia na primeira vez
     const saved = localStorage.getItem('vitrine_project');
     if (saved) {
-        canvas.loadFromJSON(saved, () => {
-            canvas.renderAll();
-            history = [saved]; historyIndex = 0;
-            updateUndoButtons();
-            setTimeout(reestruturarAmbiente, 500);
-        });
-    } else { addPulseira('adulto'); }
+        canvas.loadFromJSON(saved, () => { canvas.renderAll(); history = [saved]; historyIndex = 0; updateUndoButtons(); setTimeout(reestruturarAmbiente, 500); });
+    } else { 
+        addPulseira('adulto');
+        toggleGuide(); // Mostra o guia na primeira visita
+    }
 </script>
 </body>
 </html>
