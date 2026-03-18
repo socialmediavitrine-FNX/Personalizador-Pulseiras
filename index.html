@@ -65,32 +65,35 @@
         backgroundColor: '#ffffff',
         preserveObjectStacking: true 
     });
-
-    function addPulseira(tipo) {
-        // Voltando para os nomes originais conforme seu desejo
+    
+function addPulseira(tipo) {
         const file = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
         
         fabric.loadSVGFromURL(file, function(objects, options) {
             if (!objects) {
-                alert("Arquivo não encontrado. Verifique se o nome no GitHub é: " + file);
+                alert("Erro ao carregar arquivo!");
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
             
+            // --- O TRUQUE DE MESTRE: AUTO-CENTRALIZAR ---
             pulseira.set({
-                left: 50, 
-                top: 50,
                 isPulseira: true, 
                 selectable: true,
-                hasControls: false, // Trava o redimensionamento para não distorcer
+                hasControls: false,
                 lockMovementX: true, 
                 lockMovementY: true
             });
 
-            // Ajuste automático de escala para caber no canvas
+            // Isso força a pulseira a resetar as coordenadas do Corel e vir para o centro
+            canvas.add(pulseira);
+            pulseira.center(); 
+            pulseira.setCoords();
+
+            // Ajusta o tamanho
             pulseira.scaleToWidth((tipo === 'adulto') ? 800 : 650);
             
-            canvas.add(pulseira).sendToBack();
+            pulseira.sendToBack();
             reorganizar();
         });
     }
