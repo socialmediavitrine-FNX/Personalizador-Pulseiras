@@ -183,26 +183,43 @@ function addPulseira(tipo) {
         });
     }
 
-    function mudarCor(c) {
-        const objs = canvas.getActiveObjects();
-        objs.forEach(o => {
-            if (o.type === 'i-text') o.set('fill', c);
-            else if (o.isPulseira) {
-                o.getObjects().forEach(child => child.set('fill', c));
-            }
-        });
-        canvas.renderAll();
-        saveProject();
-    }
+function mudarCor(c) {
+    const objs = canvas.getActiveObjects();
+    if (objs.length === 0) return;
 
-    function addTexto() {
-        const t = new fabric.IText('Clique aqui', {
-            left: 200, top: 100, fontSize: 26, fill: '#333', 
-            fontFamily: document.getElementById('fontFamily').value
-        });
-        canvas.add(t);
-        canvas.setActiveObject(t);
+    objs.forEach(o => {
+        // Se for texto
+        if (o.type === 'i-text' || o.type === 'text') {
+            o.set('fill', c);
+        } 
+        // Se for a pulseira (SVG agrupado)
+        else if (o.isPulseira) {
+            o.getObjects().forEach(child => {
+                child.set('fill', c);
+                child.set('stroke', c); // Garante que contornos também mudem
+            });
+        }
+    });
+    canvas.renderAll();
+    saveProject();
+}
+
+function addTexto() {
+    const t = new fabric.IText('Clique aqui', {
+        left: 250, // Posição mais centralizada
+        top: 150, 
+        fontSize: 30, 
+        fill: '#ffffff', // Cor branca para dar contraste inicial com a pulseira preta
+        fontFamily: 'Inter', // Garante uma fonte carregada
+        fontWeight: 'bold'
+    });
+    
+    canvas.add(t);
+    canvas.setActiveObject(t);
+    t.bringToFront(); // FORÇA O TEXTO PARA A FRENTE DE TUDO
+    canvas.renderAll();
     }
+}
 
     function uploadImg(input) {
         if (input.files && input.files[0]) {
