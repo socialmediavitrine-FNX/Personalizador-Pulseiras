@@ -79,41 +79,42 @@ function addPulseira(tipo) {
     const nomeArquivo = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
     const urlFinal = './' + nomeArquivo + '?t=' + timestamp;
     
-    // Usamos loadSVGFromURL, mas com um tratamento especial para os objetos
     fabric.loadSVGFromURL(urlFinal, function(objects, options) {
         if (!objects || objects.length === 0) {
-            alert("O arquivo foi encontrado, mas está vazio ou mal formatado. Verifique a exportação do Corel.");
+            alert("O arquivo carregou, mas não há desenhos dentro dele.");
             return;
         }
 
-        // Criamos o grupo de elementos
+        // Agrupa os elementos
         const pulseira = fabric.util.groupSVGElements(objects, options);
         
-        // CORREÇÃO CRUCIAL: Se o Corel exportou sem cor definida no grupo, forçamos aqui
-        if (!pulseira.fill) {
-            pulseira.set('fill', '#000000'); 
-        }
-
+        // --- O PULO DO GATO ---
+        // 1. Remove qualquer transformação maluca que venha do Corel
         pulseira.set({
-            left: 25,
-            top: 40,
+            left: 425, // Metade da largura do canvas (850/2)
+            top: 150,  // Posição fixa no topo
+            originX: 'center',
+            originY: 'center',
             isPulseira: true,
             selectable: true,
-            hasControls: false,
-            lockMovementX: true,
-            lockMovementY: true,
-            crossOrigin: 'anonymous' // Ajuda a evitar bloqueios de segurança
+            hasControls: false
         });
 
+        // 2. Força o tamanho (independente se o SVG tem 3000px ou 800px)
         pulseira.scaleToWidth(800);
-        
-        // Remove pulseiras antigas antes de adicionar a nova
+
+        // 3. Garante que ela apareça (Z-index)
         const antigas = canvas.getObjects().filter(obj => obj.isPulseira);
         antigas.forEach(obj => canvas.remove(obj));
 
-        canvas.add(pulseira).sendToBack();
+        canvas.add(pulseira);
+        pulseira.sendToBack();
+        
+        // 4. Renderização forçada
+        canvas.calcOffset();
         canvas.renderAll();
-        reorganizar();
+        
+        console.log("Pulseira adicionada com sucesso!");
     }, null, { crossOrigin: 'anonymous' });
 }
     // --- NOVA FUNÇÃO: ADICIONAR IMAGEM ---
