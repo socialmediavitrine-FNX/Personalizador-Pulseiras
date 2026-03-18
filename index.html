@@ -7,20 +7,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --vitrine-blue: #1b31e0; --primary: #007bff; --danger: #ef4444; --success: #22c55e; --bg: #f1f5f9; }
+        :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 20; }
-        .brand-logo img { height: 45px; display: block; }
-        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; z-index: 10; }
+        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+        .brand-logo img { height: 45px; }
+        .toolbar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; z-index: 10; }
         .group { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #eee; padding-right: 12px; }
         label { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
         .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--primary); color: white; border: none; }
-        .workspace { flex: 1; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #cbd5e1; position: relative; }
+        .workspace { flex: 1; display: flex; justify-content: center; align-items: flex-start; background: #cbd5e1; padding-top: 30px; overflow-y: auto; }
         canvas { box-shadow: 0 0 25px rgba(0,0,0,0.15); background-color: white; }
-        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; z-index: 20; }
+        .footer-actions { background: white; padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 15px; }
         .btn-action { color: white; border: none; padding: 12px 25px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        .grabbing { cursor: grabbing !important; }
     </style>
 </head>
 <body>
@@ -47,100 +46,53 @@
             <button class="btn" style="background:#333; color:white" onclick="limparTudo()">Limpar Tudo</button>
         </div>
     </div>
-    <div class="group">
-        <label>3. Zoom</label>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <button class="btn" onclick="adjustZoom(-0.2)">-</button>
-            <button class="btn" onclick="adjustZoom(0.2)">+</button>
-        </div>
-    </div>
 </div>
 
 <div class="workspace">
     <canvas id="c"></canvas>
-    <div style="position:absolute; bottom:10px; left:10px; font-size:10px; background:rgba(255,255,255,0.7); padding:5px;">
-        ALT + Arraste para mover tela | 2 Cliques para resetar
-    </div>
 </div>
 
 <div class="footer-actions">
-    <button class="btn-action" style="background: #555;" onclick="saveManual()">💾 SALVAR PROGRESSO</button>
     <button class="btn-action" style="background: #0ea5e9;" onclick="baixarImagem()">⬇ BAIXAR ARTE</button>
     <button class="btn-action" style="background: #22c55e;" onclick="enviarWhatsApp()">✅ FINALIZAR WHATSAPP</button>
 </div>
 
 <script>
+    // Canvas fixo sem Zoom/Pan complexo para evitar que os objetos "sumam"
     const canvas = new fabric.Canvas('c', { 
-        width: 1000, height: 500, 
+        width: 900, 
+        height: 600, 
         backgroundColor: '#ffffff',
         preserveObjectStacking: true 
     });
 
-    // PANNING & ZOOM
-    let isDragging = false, lastPosX, lastPosY;
-    canvas.on('mouse:down', function(opt) {
-        if (opt.e.altKey) {
-            isDragging = true;
-            canvas.selection = false;
-            lastPosX = opt.e.clientX; lastPosY = opt.e.clientY;
-            canvas.getElement().parentNode.classList.add('grabbing');
-        }
-    });
-    canvas.on('mouse:move', function(opt) {
-        if (isDragging) {
-            let vpt = canvas.viewportTransform;
-            vpt[4] += opt.e.clientX - lastPosX;
-            vpt[5] += opt.e.clientY - lastPosY;
-            canvas.requestRenderAll();
-            lastPosX = opt.e.clientX; lastPosY = opt.e.clientY;
-        }
-    });
-    canvas.on('mouse:up', function() {
-        isDragging = false; canvas.selection = true;
-        canvas.getElement().parentNode.classList.remove('grabbing');
-    });
-    canvas.on('mouse:dblclick', function() {
-        canvas.setZoom(1); canvas.viewportTransform[4] = 0; canvas.viewportTransform[5] = 0;
-        canvas.renderAll();
-    });
-
-    function adjustZoom(delta) {
-        let zoom = canvas.getZoom() + delta;
-        if (zoom > 3) zoom = 3; if (zoom < 0.5) zoom = 0.5;
-        canvas.setZoom(zoom);
-    }
-
-function addPulseira(tipo) {
-        const timestamp = new Date().getTime();
-        const file = (tipo === 'adulto') ? `pulseira-v2.svg?t=${timestamp}` : `pulseira-infantil.svg?t=${timestamp}`;
+    function addPulseira(tipo) {
+        // Voltando para os nomes originais conforme seu desejo
+        const file = (tipo === 'adulto') ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg';
         
         fabric.loadSVGFromURL(file, function(objects, options) {
-            if (!objects || objects.length === 0) {
-                alert("Erro ao carregar o arquivo.");
+            if (!objects) {
+                alert("Arquivo não encontrado. Verifique se o nome no GitHub é: " + file);
                 return;
             }
             const pulseira = fabric.util.groupSVGElements(objects, options);
             
-            // --- COMANDO NOVO PARA FORÇAR A VISIBILIDADE ---
-            pulseira.getObjects().forEach(obj => {
-                // Se o objeto estiver sem cor ou transparente, pintamos de cinza claro para teste
-                if (!obj.fill || obj.fill === 'none' || obj.fill === 'transparent') {
-                    obj.set('fill', '#cccccc'); 
-                }
-                obj.set('stroke', '#000000'); // Adiciona uma borda preta fina para garantir que vemos o contorno
-                obj.set('strokeWidth', 0.5);
-            });
-            // ----------------------------------------------
-
             pulseira.set({
-                left: 100, top: 50,
-                isPulseira: true, tipoRef: tipo,
-                hasControls: false, lockMovementX: true, lockMovementY: true
+                left: 50, 
+                top: 50,
+                isPulseira: true, 
+                selectable: true,
+                hasControls: false, // Trava o redimensionamento para não distorcer
+                lockMovementX: true, 
+                lockMovementY: true
             });
+
+            // Ajuste automático de escala para caber no canvas
             pulseira.scaleToWidth((tipo === 'adulto') ? 800 : 650);
+            
             canvas.add(pulseira).sendToBack();
             reorganizar();
-        }, { crossOrigin: 'anonymous' });
+        });
     }
 
     function reorganizar() {
@@ -148,10 +100,21 @@ function addPulseira(tipo) {
         let currentY = 50;
         pulseiras.forEach(p => {
             p.set({ top: currentY }).setCoords();
-            currentY += 320; 
+            currentY += 280; 
         });
-        canvas.setHeight(Math.max(500, currentY + 50));
+        canvas.setHeight(Math.max(600, currentY + 100));
         canvas.renderAll();
+    }
+
+    function addTexto() {
+        const txt = new fabric.IText('Clique para editar', { 
+            left: 200, 
+            top: 100, 
+            fontSize: 25, 
+            fontFamily: 'Inter',
+            fontWeight: 'bold'
+        });
+        canvas.add(txt).setActiveObject(txt);
     }
 
     function mudarCor(c) {
@@ -166,10 +129,6 @@ function addPulseira(tipo) {
         canvas.renderAll();
     }
 
-    function addTexto() {
-        canvas.add(new fabric.IText('Seu Texto', { left: 150, top: 100, fontSize: 30, fill: '#000', fontFamily: 'Inter' }));
-    }
-
     function removerSelecionado() {
         canvas.getActiveObjects().forEach(o => canvas.remove(o));
         canvas.discardActiveObject();
@@ -177,42 +136,23 @@ function addPulseira(tipo) {
     }
 
     function limparTudo() {
-        if(confirm("Deseja apagar tudo e recomeçar?")) {
-            localStorage.removeItem('vitrine_manual_save');
+        if(confirm("Limpar simulador?")) {
             canvas.clear();
             canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
-        }
-    }
-
-    function saveManual() {
-        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef']));
-        localStorage.setItem('vitrine_manual_save', json);
-        alert("Arte salva com sucesso!");
-    }
-
-    function loadManual() {
-        const saved = localStorage.getItem('vitrine_manual_save');
-        if (saved) {
-            canvas.loadFromJSON(saved, () => {
-                canvas.renderAll();
-                reorganizar();
-            });
         }
     }
 
     function baixarImagem() {
         const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
         const link = document.createElement('a');
-        link.download = 'minha-arte-vitrine.png';
+        link.download = 'pedido-vitrine.png';
         link.href = dataURL;
         link.click();
     }
 
     function enviarWhatsApp() {
-        window.open("https://wa.me/5518981212934?text=Olá, finalizei minha arte no simulador!");
+        window.open("https://wa.me/5518981212934?text=Olá, finalizei minha arte!");
     }
-
-    loadManual();
 </script>
 </body>
 </html>
