@@ -10,9 +10,11 @@
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
+        /* Header */
         .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 30; }
         .brand-logo img { height: 30px; }
 
+        /* Toolbar */
         .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; overflow-x: auto; z-index: 20; }
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 15px; flex-shrink: 0; }
         label { font-size: 9px; font-weight: bold; color: #888; text-transform: uppercase; }
@@ -20,38 +22,51 @@
         .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 11px; display: flex; align-items: center; gap: 5px; }
         .btn-add { background: var(--primary); color: white; border: none; }
 
+        /* Cores */
         .color-palette { display: flex; gap: 6px; align-items: center; }
         .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); }
 
-        /* Workspace com folga inferior para os botões fixos */
+        /* Workspace */
         .workspace { 
             flex: 1; 
             overflow: auto !important; 
-            padding: 20px 20px 100px 20px; /* 100px de padding embaixo */
+            padding: 20px 20px 120px 20px; 
             background: #475569; 
             display: block;
             -webkit-overflow-scrolling: touch; 
+            touch-action: auto !important;
         }
         
         canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 4px; touch-action: auto !important; }
         
-        /* FOOTER FIXO NO MOBILE */
+        /* Footer Fixo com 3 Botões */
         .footer-actions { 
             position: fixed; 
             bottom: 0; 
             left: 0; 
             width: 100%; 
             background: white; 
-            padding: 12px; 
+            padding: 12px 8px; 
             border-top: 2px solid #ddd; 
             display: flex; 
             justify-content: center; 
-            gap: 8px; 
+            gap: 6px; 
             z-index: 40; 
             box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
         }
         
-        .btn-exp { border: none; padding: 12px 10px; font-size: 11px; font-weight: bold; border-radius: 6px; color: white; cursor: pointer; flex: 1; max-width: 150px; text-align: center; }
+        .btn-exp { 
+            border: none; 
+            padding: 12px 5px; 
+            font-size: 10px; 
+            font-weight: bold; 
+            border-radius: 6px; 
+            color: white; 
+            cursor: pointer; 
+            flex: 1; 
+            text-align: center;
+            text-transform: uppercase;
+        }
 
         #guideModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 450px; width: 85%; }
@@ -61,8 +76,12 @@
 
 <div id="guideModal">
     <div class="modal-content">
-        <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Quase pronto!</h2>
-        <p style="font-size:14px; color:#444;">• Role a página para ver a pulseira inteira.<br>• Os botões de <b>Finalizar</b> estão sempre no rodapé da tela.<br>• Toque no texto para editar.</p>
+        <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Guia de Envio</h2>
+        <p style="font-size:14px; color:#444;">
+            1. Monte sua pulseira.<br>
+            2. Clique em <b>SALVAR PNG</b> para baixar a imagem.<br>
+            3. Escolha um dos botões de WhatsApp para nos enviar a foto e finalizar!
+        </p>
         <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">ENTENDI</button>
     </div>
 </div>
@@ -95,11 +114,11 @@
             <div class="color-dot" style="background:#0000FF" onclick="mudarCor('#0000FF')"></div>
             <div class="color-dot" style="background:#000000" onclick="mudarCor('#000000')"></div>
             <div class="color-dot" style="background:#CCFF00" onclick="mudarCor('#CCFF00')"></div>
-            <input type="color" onchange="mudarCor(this.value)" style="width:25px; height:25px; border:none;">
+            <input type="color" onchange="mudarCor(this.value)" style="width:25px; height:25px; border:none; background:none; cursor:pointer;">
         </div>
     </div>
     <div class="group" style="border:none;">
-        <label>4. Ações</label>
+        <label>4. Editar</label>
         <div style="display:flex; gap:4px;">
             <button class="btn" onclick="undo()">↩</button>
             <button class="btn" style="color:#ef4444" onclick="removerSelecionado()">🗑</button>
@@ -112,9 +131,9 @@
 </div>
 
 <div class="footer-actions">
-    <button class="btn-exp" style="background:#0ea5e9" onclick="baixarPNG()">SALVAR</button>
-    <button class="btn-exp" style="background:#f59e0b" onclick="exportarSVG()">SVG</button>
-    <button class="btn-exp" style="background:#22c55e" onclick="enviarWhatsApp()">FINALIZAR</button>
+    <button class="btn-exp" style="background:#0ea5e9" onclick="baixarPNG()">Salvar PNG</button>
+    <button class="btn-exp" style="background:#22c55e" onclick="enviarWhatsRepresentante()">Orçamento</button>
+    <button class="btn-exp" style="background:#128C7E" onclick="enviarWhatsEcommerce()">Já comprei</button>
 </div>
 
 <script>
@@ -122,10 +141,25 @@
         width: 1000, height: 650, backgroundColor: '#ffffff', selection: false, allowTouchScrolling: true 
     });
 
+    // Libera scroll se clicar no branco
     canvas.on('mouse:down', function(opt) {
         canvas.allowTouchScrolling = !opt.target;
     });
 
+    // --- WHATSAPP FUNCTIONS ---
+    function enviarWhatsRepresentante() {
+        const fone = "5518981212934";
+        const msg = encodeURIComponent("Olá, montei minha arte para minha pulseira personalizada no simulador de pulseira personalizada de vocês!");
+        window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${msg}`);
+    }
+
+    function enviarWhatsEcommerce() {
+        const fone = "551836424452";
+        const msg = encodeURIComponent("Olá, fiz um pedido de pulseira personalizada e aqui está a minha arte! (Comprei pela plataforma: ________ )");
+        window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${msg}`);
+    }
+
+    // --- ARTE FUNCTIONS ---
     function addPulseira(tipo) {
         fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}`, (objects, options) => {
             const p = fabric.util.groupSVGElements(objects, options);
@@ -188,12 +222,12 @@
     function applyHistory() { canvas.loadFromJSON(history[historyIndex], () => { canvas.renderAll(); isTransitioning = false; }); }
     canvas.on('object:added', saveHistory); canvas.on('object:modified', saveHistory); canvas.on('object:removed', saveHistory);
 
-    function baixarPNG() { const l = document.createElement('a'); l.download = 'arte.png'; l.href = canvas.toDataURL({ multiplier: 2 }); l.click(); }
+    function baixarPNG() { const l = document.createElement('a'); l.download = 'minha-pulseira.png'; l.href = canvas.toDataURL({ multiplier: 2 }); l.click(); }
     function exportarSVG() { const b = new Blob([canvas.toSVG()], { type: 'image/svg+xml' }); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'projeto.svg'; l.click(); }
-    function enviarWhatsApp() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá! Montei minha arte.`); }
     function removerSelecionado() { canvas.getActiveObjects().forEach(o => canvas.remove(o)); canvas.discardActiveObject(); reestruturarAmbiente(); }
     function toggleGuide() { const m = document.getElementById('guideModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
 
+    // Carregamento inicial
     const saved = localStorage.getItem('vitrine_project');
     if (saved) { canvas.loadFromJSON(saved, () => { canvas.renderAll(); history = [saved]; historyIndex = 0; setTimeout(reestruturarAmbiente, 500); }); }
     else { addPulseira('adulto'); toggleGuide(); }
