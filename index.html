@@ -21,7 +21,8 @@
         .btn-add { background: var(--primary); color: white; border: none; }
 
         .color-palette { display: flex; gap: 4px; align-items: center; }
-        .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.2); transition: transform 0.1s; }
+        .color-dot:active { transform: scale(0.9); }
 
         .workspace { 
             flex: 1; 
@@ -73,9 +74,9 @@
     <div class="modal-content">
         <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Guia Rápido</h2>
         <p style="font-size:14px; color:#444;">
-            • Toque no texto para editar.<br>
+            • Selecione o item e depois clique na cor desejada.<br>
             • Use <b>SALVAR SVG</b> para enviar para produção.<br>
-            • No PC: Use <b>Delete</b> para apagar e <b>Setas</b> para mover.
+            • No PC: Use <b>Delete</b> para apagar.
         </p>
         <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">ENTENDI</button>
     </div>
@@ -109,7 +110,7 @@
             <div class="color-dot" style="background:#0000FF" onclick="mudarCor('#0000FF')"></div>
             <div class="color-dot" style="background:#000000" onclick="mudarCor('#000000')"></div>
             <div class="color-dot" style="background:#CCFF00" onclick="mudarCor('#CCFF00')"></div>
-            <input type="color" onchange="mudarCor(this.value)" style="width:22px; height:22px; border:none; background:none; cursor:pointer;">
+            <input type="color" id="customColor" oninput="mudarCor(this.value)" style="width:24px; height:24px; border:none; background:none; cursor:pointer;">
         </div>
     </div>
     <div class="group" style="border:none;">
@@ -137,26 +138,22 @@
 </div>
 
 <script>
-    // 1. Inicialização com Seleção Múltipla Ativada
     const canvas = new fabric.Canvas('c', { 
         width: 1000, 
         height: 650, 
         backgroundColor: '#ffffff', 
-        selection: true, // Permite arrastar o quadrado de seleção
+        selection: true,
         allowTouchScrolling: true 
     });
 
-    // Melhora a visibilidade da seleção
     canvas.selectionColor = 'rgba(27, 49, 224, 0.1)';
     canvas.selectionBorderColor = '#1b31e0';
     canvas.selectionLineWidth = 1;
 
-    // Gerencia scroll no touch
     canvas.on('mouse:down', function(opt) {
         canvas.allowTouchScrolling = !opt.target;
     });
 
-    // --- FUNÇÕES DE WHATSAPP ---
     function enviarWhatsRepresentante() {
         const fone = "5518981212934";
         const msg = encodeURIComponent("Olá, montei minha arte para minha pulseira personalizada no simulador de vocês!");
@@ -169,7 +166,6 @@
         window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${msg}`);
     }
 
-    // --- LÓGICA DO SIMULADOR ---
     function addPulseira(tipo) {
         fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}`, (objects, options) => {
             const p = fabric.util.groupSVGElements(objects, options);
@@ -193,19 +189,40 @@
         canvas.setHeight(Math.max(650, currentY)); canvas.renderAll();
     }
 
-    function mudarCor(c) {
-        const targets = canvas.getActiveObjects();
-        if(targets.length === 0) return;
+    // --- CORREÇÃO DA LÓGICA DE CORES ---
+    function mudarCor(corEscolhida) {
+        const selecionados = canvas.getActiveObjects();
         
-        targets.forEach(o => {
-            if (o.type.includes('text')) o.set('fill', c);
-            else if (o.isPulseira) o.getObjects().forEach(child => { child.set('fill', c); child.set('stroke', c); });
-            else if (o.type === 'image') {
-                o.filters = [new fabric.Image.filters.BlendColor({ color: c, mode: 'tint', alpha: 1 })];
-                o.applyFilters();
+        if (selecionados.length === 0) {
+            console.log("Nenhum item selecionado para colorir.");
+            return;
+        }
+
+        selecionados.forEach(obj => {
+            // Se for Texto
+            if (obj.type.includes('text')) {
+                obj.set('fill', corEscolhida);
+            } 
+            // Se for a Pulseira (SVG)
+            else if (obj.isPulseira) {
+                obj.getObjects().forEach(child => {
+                    child.set('fill', corEscolhida);
+                    child.set('stroke', corEscolhida);
+                });
+            }
+            // Se for Imagem (Aplica filtro de cor)
+            else if (obj.type === 'image') {
+                obj.filters = [new fabric.Image.filters.BlendColor({
+                    color: corEscolhida,
+                    mode: 'tint',
+                    alpha: 1
+                })];
+                obj.applyFilters();
             }
         });
-        canvas.renderAll(); saveHistory();
+
+        canvas.renderAll();
+        saveHistory();
     }
 
     function addTexto() { 
@@ -223,20 +240,13 @@
         } 
     }
 
-    // --- ATALHOS DE TECLADO ---
     window.addEventListener('keydown', (e) => {
         const activeObjects = canvas.getActiveObjects();
-        if (!activeObjects.length) return;
-
-        // Não executa atalhos se estiver editando texto
-        if (activeObjects[0].isEditing) return;
-
+        if (!activeObjects.length || activeObjects[0].isEditing) return;
         const moveStep = 2;
         switch (e.key) {
             case 'Delete':
-            case 'Backspace':
-                removerSelecionado();
-                break;
+            case 'Backspace': removerSelecionado(); break;
             case 'ArrowLeft': activeObjects.forEach(o => o.left -= moveStep); break;
             case 'ArrowRight': activeObjects.forEach(o => o.left += moveStep); break;
             case 'ArrowUp': activeObjects.forEach(o => o.top -= moveStep); break;
@@ -248,23 +258,15 @@
     function removerSelecionado() {
         const ativos = canvas.getActiveObjects();
         const pulseirasAtuais = canvas.getObjects().filter(obj => obj.isPulseira);
-        
         ativos.forEach(o => {
             if (o.isPulseira) {
-                if (pulseirasAtuais.length > 1) {
-                    canvas.remove(o);
-                } else {
-                    alert("Aviso: Mantenha pelo menos uma pulseira para continuar personalizando.");
-                }
-            } else {
-                canvas.remove(o);
-            }
+                if (pulseirasAtuais.length > 1) canvas.remove(o);
+                else alert("Mantenha pelo menos uma pulseira na tela.");
+            } else canvas.remove(o);
         });
-        canvas.discardActiveObject();
-        reestruturarAmbiente();
+        canvas.discardActiveObject(); reestruturarAmbiente();
     }
 
-    // --- HISTÓRICO E EXPORTAÇÃO ---
     let history = []; let historyIndex = -1; let isTransitioning = false;
     function saveHistory() {
         if (isTransitioning) return;
