@@ -8,41 +8,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
-        /* Impede o navegador de tentar gerenciar gestos que conflitam com o canvas */
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; touch-action: none; }
-        
         .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 30; }
-        .brand-logo img { height: 30px; }
-
         .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; overflow-x: auto; z-index: 20; touch-action: pan-x; }
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 10px; flex-shrink: 0; }
         label { font-size: 8px; font-weight: bold; color: #888; text-transform: uppercase; }
-        
         .btn { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 10px; display: flex; align-items: center; gap: 4px; }
         .btn-add { background: var(--primary); color: white; border: none; }
-
         .color-palette { display: flex; gap: 4px; align-items: center; }
         .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.2); }
-
-        .workspace { 
-            flex: 1; 
-            overflow: auto !important; 
-            padding: 20px 20px 140px 20px; 
-            background: #475569; 
-            display: block;
-            touch-action: pan-x pan-y !important; /* Libera o scroll apenas na área de trabalho */
-        }
-        
+        .workspace { flex: 1; overflow: auto !important; padding: 20px 20px 140px 20px; background: #475569; display: block; touch-action: pan-x pan-y !important; }
         canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 4px; }
-        
-        .footer-actions { 
-            position: fixed; bottom: 0; left: 0; width: 100%; background: white; 
-            padding: 10px; border-top: 2px solid #ddd; display: flex; 
-            justify-content: center; gap: 6px; z-index: 40; 
-        }
-        
+        .footer-actions { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px; border-top: 2px solid #ddd; display: flex; justify-content: center; gap: 6px; z-index: 40; }
         .btn-exp { border: none; padding: 10px 4px; font-size: 10px; font-weight: bold; border-radius: 6px; color: white; cursor: pointer; flex: 1; text-align: center; }
-
         #guideModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 450px; width: 85%; }
     </style>
@@ -51,18 +29,16 @@
 
 <div id="guideModal">
     <div class="modal-content">
-        <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Dica Mobile</h2>
+        <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Progresso Salvo!</h2>
         <p style="font-size:14px; color:#444;">
-            • Para mover a tela, use o fundo cinza.<br>
-            • Toque uma vez no item para selecionar.<br>
-            • Toque fora para "soltar" o objeto.
+            Sua arte é salva automaticamente. Se a página recarregar, você não perde nada!
         </p>
-        <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">ENTENDI</button>
+        <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">CONTINUAR</button>
     </div>
 </div>
 
 <div class="brand-header">
-    <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
+    <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios" onerror="this.style.display='none'"><strong>VITRINE</strong></div>
     <button class="btn" style="background:#6366f1; color:white; border:none;" onclick="toggleGuide()">AJUDA</button>
 </div>
 
@@ -85,53 +61,52 @@
 <script>
     const canvas = new fabric.Canvas('c', { 
         width: 1000, height: 650, backgroundColor: '#ffffff', 
-        selection: true, allowTouchScrolling: true,
-        imageSmoothingEnabled: false // Melhora performance no mobile
+        selection: true, allowTouchScrolling: true
     });
 
     fabric.Object.prototype.set({
         transparentCorners: false, cornerColor: '#1b31e0', cornerSize: 30, padding: 12
     });
 
-    // --- CORREÇÃO DO "STICKY TOUCH" (FOLLOW) ---
-    canvas.on('mouse:down', function(opt) {
-        if (opt.target) {
-            canvas.allowTouchScrolling = false;
-        } else {
-            canvas.allowTouchScrolling = true;
-            canvas.discardActiveObject().renderAll(); // Força soltar o objeto se clicar fora
+    // --- LÓGICA DE MEMÓRIA (LOCALSTORAGE) ---
+    function saveToLocalStorage() {
+        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable', 'hasControls']));
+        localStorage.setItem('vitrine_simulador_save', json);
+    }
+
+    function loadFromLocalStorage() {
+        const savedData = localStorage.getItem('vitrine_simulador_save');
+        if (savedData) {
+            canvas.loadFromJSON(savedData, () => {
+                canvas.requestRenderAll();
+                reestruturarAmbiente(); // Garante que as legendas e posições fiquem certas
+            });
+            return true;
         }
-    });
+        return false;
+    }
 
-    canvas.on('mouse:up', function() {
-        canvas.allowTouchScrolling = true;
-        canvas.renderAll();
-    });
+    // --- EVENTOS DE MUDANÇA ---
+    canvas.on('object:modified', saveToLocalStorage);
+    canvas.on('object:added', saveToLocalStorage);
+    canvas.on('object:removed', saveToLocalStorage);
 
-    // --- CORREÇÃO DO UPLOAD INVISÍVEL ---
+    // Gestão de Scroll
+    canvas.on('mouse:down', (opt) => { canvas.allowTouchScrolling = !opt.target; if(!opt.target) canvas.discardActiveObject().renderAll(); });
+    canvas.on('mouse:up', () => { canvas.allowTouchScrolling = true; });
+
     function uploadImg(input) { 
         if (input.files[0]) { 
             const r = new FileReader(); 
             r.onload = (e) => { 
                 fabric.Image.fromURL(e.target.result, (img) => { 
-                    img.scaleToWidth(180);
-                    img.set({ left: 400, top: 200 });
-                    canvas.add(img);
-                    
-                    // Força a renderização em 3 níveis para garantir que apareça
-                    img.setCoords();
-                    canvas.setActiveObject(img);
-                    canvas.requestRenderAll(); 
-                    
-                    // Pequeno delay para garantir que o navegador mobile processe
-                    setTimeout(() => { 
-                        canvas.requestRenderAll(); 
-                        saveHistory();
-                    }, 100);
-                }, { crossOrigin: 'anonymous' }); 
+                    img.scaleToWidth(180); img.set({ left: 400, top: 200 });
+                    canvas.add(img); img.setCoords(); canvas.setActiveObject(img);
+                    setTimeout(() => { canvas.requestRenderAll(); saveToLocalStorage(); }, 100);
+                }); 
             }; 
             r.readAsDataURL(input.files[0]); 
-            input.value = ''; // Limpa o input para permitir subir a mesma foto de novo
+            input.value = '';
         } 
     }
 
@@ -141,6 +116,7 @@
             p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true });
             p.scaleToWidth(tipo === 'adulto' ? 900 : 750);
             canvas.add(p); p.sendToBack(); reestruturarAmbiente();
+            saveToLocalStorage();
         });
     }
 
@@ -160,7 +136,6 @@
 
     function mudarCor(c) {
         const selecionados = canvas.getActiveObjects();
-        if (!selecionados.length) return;
         selecionados.forEach(obj => {
             if (obj.type.includes('text')) obj.set('fill', c);
             else if (obj.isPulseira) obj.getObjects().forEach(ch => { ch.set('fill', c); ch.set('stroke', c); });
@@ -169,7 +144,7 @@
                 obj.applyFilters();
             }
         });
-        canvas.requestRenderAll(); saveHistory();
+        canvas.requestRenderAll(); saveToLocalStorage();
     }
 
     function addTexto() { 
@@ -178,35 +153,32 @@
     }
 
     function removerSelecionado() {
-        const ativos = canvas.getActiveObjects();
-        const pulseirasAtuais = canvas.getObjects().filter(obj => obj.isPulseira);
-        ativos.forEach(o => {
-            if (o.isPulseira) { if (pulseirasAtuais.length > 1) canvas.remove(o); } 
+        canvas.getActiveObjects().forEach(o => {
+            if (o.isPulseira) { if (canvas.getObjects().filter(obj => obj.isPulseira).length > 1) canvas.remove(o); } 
             else canvas.remove(o);
         });
-        canvas.discardActiveObject(); reestruturarAmbiente();
+        canvas.discardActiveObject(); reestruturarAmbiente(); saveToLocalStorage();
     }
 
-    // --- WHATSAPP ---
+    // --- HISTÓRICO UNDO ---
+    let undoStack = [];
+    function undo() { if (undoStack.length > 1) { undoStack.pop(); const state = undoStack[undoStack.length-1]; canvas.loadFromJSON(state, () => { canvas.renderAll(); saveToLocalStorage(); }); } }
+    canvas.on('object:modified', () => { undoStack.push(JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda']))); });
+
     function enviarWhatsRepresentante() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá!`); }
     function enviarWhatsEcommerce() { window.open(`https://api.whatsapp.com/send?phone=551836424452&text=Olá!`); }
-
-    // --- HISTÓRICO ---
-    let history = []; let historyIndex = -1; let isTransitioning = false;
-    function saveHistory() {
-        if (isTransitioning) return;
-        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda']));
-        if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
-        history.push(json); historyIndex++;
-    }
-    function undo() { if (historyIndex > 0) { isTransitioning = true; historyIndex--; applyHistory(); } }
-    function applyHistory() { canvas.loadFromJSON(history[historyIndex], () => { canvas.requestRenderAll(); isTransitioning = false; }); }
-
     function baixarPNG() { const l = document.createElement('a'); l.download = 'arte.png'; l.href = canvas.toDataURL({ multiplier: 3 }); l.click(); }
     function exportarSVG() { const b = new Blob([canvas.toSVG()], { type: 'image/svg+xml' }); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'arte.svg'; l.click(); }
     function toggleGuide() { const m = document.getElementById('guideModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
 
-    addPulseira('adulto');
+    // --- INICIALIZAÇÃO ---
+    window.onload = () => {
+        const carregou = loadFromLocalStorage();
+        if (!carregou) {
+            addPulseira('adulto');
+            toggleGuide();
+        }
+    };
 </script>
 </body>
 </html>
