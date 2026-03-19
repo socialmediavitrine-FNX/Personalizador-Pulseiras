@@ -8,61 +8,63 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; touch-action: none; }
-     .brand-header { 
-    background: var(--vitrine-blue); 
-    color: white; 
-    padding: 5px 15px; /* Diminuí um pouco o padding */
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    z-index: 30; 
-    height: 50px; /* Travei a altura da barra */
-}
+        
+        /* Prevenção de gestos nativos que causam o "follow" */
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
+            touch-action: none; /* Bloqueia o pan do navegador no corpo inteiro */
+        }
+        
+        .brand-header { 
+            background: var(--vitrine-blue); color: white; padding: 5px 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            z-index: 30; height: 60px; box-sizing: border-box;
+        }
 
-.brand-logo {
-    display: flex;
-    align-items: center;
-    max-width: 150px; /* Limita a largura da área da logo */
-}
+        .brand-logo { display: flex; align-items: center; height: 100%; }
+        .brand-logo img { 
+            max-height: 45px; /* TRAVA A LOGO AQUI */
+            width: auto; object-fit: contain; 
+        }
 
-.brand-logo img { 
-    max-height: 40px; /* ISSO AQUI TRAVA O TAMANHO DA IMAGEM */
-    width: auto; 
-    object-fit: contain;
-}
-        .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; overflow-x: auto; z-index: 20; touch-action: pan-x; }
+        .toolbar { 
+            background: #fff; padding: 10px; border-bottom: 1px solid #ddd; 
+            display: flex; gap: 10px; align-items: center; overflow-x: auto; 
+            z-index: 20; touch-action: pan-x; /* Permite scroll lateral apenas nos botões */
+        }
+        
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 10px; flex-shrink: 0; }
         label { font-size: 8px; font-weight: bold; color: #888; text-transform: uppercase; }
-        .btn { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-weight: bold; font-size: 10px; display: flex; align-items: center; gap: 4px; }
+        .btn { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; background: white; font-weight: bold; font-size: 10px; display: flex; align-items: center; gap: 4px; }
         .btn-add { background: var(--primary); color: white; border: none; }
         .color-palette { display: flex; gap: 4px; align-items: center; }
         .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.2); }
-        .workspace { flex: 1; overflow: auto !important; padding: 20px 20px 140px 20px; background: #475569; display: block; touch-action: pan-x pan-y !important; }
+
+        .workspace { 
+            flex: 1; overflow: auto !important; padding: 20px; 
+            background: #475569; display: block;
+            touch-action: pan-x pan-y !important; /* Libera scroll apenas aqui */
+        }
+        
         canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 4px; }
-        .footer-actions { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px; border-top: 2px solid #ddd; display: flex; justify-content: center; gap: 6px; z-index: 40; }
+        
+        .footer-actions { 
+            position: fixed; bottom: 0; left: 0; width: 100%; background: white; 
+            padding: 10px; border-top: 2px solid #ddd; display: flex; 
+            justify-content: center; gap: 6px; z-index: 40; 
+        }
+        
         .btn-exp { border: none; padding: 10px 4px; font-size: 10px; font-weight: bold; border-radius: 6px; color: white; cursor: pointer; flex: 1; text-align: center; }
-        #guideModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 450px; width: 85%; }
     </style>
 </head>
 <body>
 
-<div id="guideModal">
-    <div class="modal-content">
-        <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Progresso Salvo!</h2>
-        <p style="font-size:14px; color:#444;">
-            Sua arte é salva automaticamente. Se a página recarregar, você não perde nada!
-        </p>
-        <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">CONTINUAR</button>
-    </div>
-</div>
-
 <div class="brand-header">
     <div class="brand-logo">
-        <img src="logo.png" alt="Vitrine Acessórios" style="max-height: 40px;">
+        <img src="logo.png" alt="Vitrine Acessórios">
     </div>
-    <button class="btn" style="background:#6366f1; color:white; border:none;" onclick="toggleGuide()">AJUDA</button>
+    <div style="font-size: 10px; font-weight: bold;">SIMULADOR V1.2</div>
 </div>
 
 <div class="toolbar">
@@ -84,14 +86,37 @@
 <script>
     const canvas = new fabric.Canvas('c', { 
         width: 1000, height: 650, backgroundColor: '#ffffff', 
-        selection: true, allowTouchScrolling: true
+        selection: true, allowTouchScrolling: true,
+        stopContextMenu: true 
     });
 
     fabric.Object.prototype.set({
-        transparentCorners: false, cornerColor: '#1b31e0', cornerSize: 30, padding: 12
+        transparentCorners: false, cornerColor: '#1b31e0', cornerSize: 32, padding: 15,
+        touchCornerSize: 40 // Área de toque ainda maior para redimensionar
     });
 
-    // --- LÓGICA DE MEMÓRIA (LOCALSTORAGE) ---
+    // --- BLINDAGEM DE TOQUE (FIM DO FOLLOW) ---
+    canvas.on('mouse:down', function(opt) {
+        if (opt.target) {
+            canvas.allowTouchScrolling = false; // Trava para editar
+        } else {
+            canvas.allowTouchScrolling = true; // Libera para rolar tela
+            canvas.discardActiveObject().requestRenderAll(); 
+        }
+    });
+
+    canvas.on('mouse:up', function() {
+        canvas.allowTouchScrolling = true;
+        saveToLocalStorage();
+    });
+
+    // Impede que o toque "vaze" para fora do canvas
+    canvas.on('mouse:move', function(opt) {
+        if (canvas.allowTouchScrolling && !canvas.getActiveObject()) {
+            return; // Se estiver rolando a tela, não processa movimento de objeto
+        }
+    });
+
     function saveToLocalStorage() {
         const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable', 'hasControls']));
         localStorage.setItem('vitrine_simulador_save', json);
@@ -102,21 +127,12 @@
         if (savedData) {
             canvas.loadFromJSON(savedData, () => {
                 canvas.requestRenderAll();
-                reestruturarAmbiente(); // Garante que as legendas e posições fiquem certas
+                setTimeout(reestruturarAmbiente, 100);
             });
             return true;
         }
         return false;
     }
-
-    // --- EVENTOS DE MUDANÇA ---
-    canvas.on('object:modified', saveToLocalStorage);
-    canvas.on('object:added', saveToLocalStorage);
-    canvas.on('object:removed', saveToLocalStorage);
-
-    // Gestão de Scroll
-    canvas.on('mouse:down', (opt) => { canvas.allowTouchScrolling = !opt.target; if(!opt.target) canvas.discardActiveObject().renderAll(); });
-    canvas.on('mouse:up', () => { canvas.allowTouchScrolling = true; });
 
     function uploadImg(input) { 
         if (input.files[0]) { 
@@ -125,7 +141,7 @@
                 fabric.Image.fromURL(e.target.result, (img) => { 
                     img.scaleToWidth(180); img.set({ left: 400, top: 200 });
                     canvas.add(img); img.setCoords(); canvas.setActiveObject(img);
-                    setTimeout(() => { canvas.requestRenderAll(); saveToLocalStorage(); }, 100);
+                    setTimeout(() => { canvas.requestRenderAll(); saveToLocalStorage(); }, 150);
                 }); 
             }; 
             r.readAsDataURL(input.files[0]); 
@@ -183,25 +199,17 @@
         canvas.discardActiveObject(); reestruturarAmbiente(); saveToLocalStorage();
     }
 
-    // --- HISTÓRICO UNDO ---
     let undoStack = [];
-    function undo() { if (undoStack.length > 1) { undoStack.pop(); const state = undoStack[undoStack.length-1]; canvas.loadFromJSON(state, () => { canvas.renderAll(); saveToLocalStorage(); }); } }
-    canvas.on('object:modified', () => { undoStack.push(JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda']))); });
+    function undo() { if (undoStack.length > 1) { undoStack.pop(); const state = undoStack[undoStack.length-1]; canvas.loadFromJSON(state, () => { canvas.renderAll(); }); } }
+    canvas.on('object:modified', () => { undoStack.push(JSON.stringify(canvas.toJSON())); });
 
     function enviarWhatsRepresentante() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá!`); }
     function enviarWhatsEcommerce() { window.open(`https://api.whatsapp.com/send?phone=551836424452&text=Olá!`); }
     function baixarPNG() { const l = document.createElement('a'); l.download = 'arte.png'; l.href = canvas.toDataURL({ multiplier: 3 }); l.click(); }
     function exportarSVG() { const b = new Blob([canvas.toSVG()], { type: 'image/svg+xml' }); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'arte.svg'; l.click(); }
-    function toggleGuide() { const m = document.getElementById('guideModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+    function toggleGuide() { alert("Use o fundo cinza para mover a tela e toque no item para editar."); }
 
-    // --- INICIALIZAÇÃO ---
-    window.onload = () => {
-        const carregou = loadFromLocalStorage();
-        if (!carregou) {
-            addPulseira('adulto');
-            toggleGuide();
-        }
-    };
+    window.onload = () => { if (!loadFromLocalStorage()) addPulseira('adulto'); };
 </script>
 </body>
 </html>
