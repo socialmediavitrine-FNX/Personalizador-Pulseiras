@@ -9,7 +9,28 @@
     <style>
         :root { --vitrine-blue: #1b31e0; --primary: #007bff; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; touch-action: none; }
-        .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 30; }
+     .brand-header { 
+    background: var(--vitrine-blue); 
+    color: white; 
+    padding: 5px 15px; /* Diminuí um pouco o padding */
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    z-index: 30; 
+    height: 50px; /* Travei a altura da barra */
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    max-width: 150px; /* Limita a largura da área da logo */
+}
+
+.brand-logo img { 
+    max-height: 40px; /* ISSO AQUI TRAVA O TAMANHO DA IMAGEM */
+    width: auto; 
+    object-fit: contain;
+}
         .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; overflow-x: auto; z-index: 20; touch-action: pan-x; }
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 10px; flex-shrink: 0; }
         label { font-size: 8px; font-weight: bold; color: #888; text-transform: uppercase; }
@@ -38,7 +59,9 @@
 </div>
 
 <div class="brand-header">
-    <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios" onerror="this.style.display='none'"><strong>VITRINE</strong></div>
+    <div class="brand-logo">
+        <img src="logo.png" alt="Vitrine Acessórios" style="max-height: 40px;">
+    </div>
     <button class="btn" style="background:#6366f1; color:white; border:none;" onclick="toggleGuide()">AJUDA</button>
 </div>
 
