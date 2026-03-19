@@ -13,7 +13,7 @@
         .brand-header { background: var(--vitrine-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 30; }
         .brand-logo img { height: 30px; }
 
-        .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; overflow-x: auto; z-index: 20; }
+        .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; overflow-x: auto; z-index: 20; -webkit-overflow-scrolling: touch; }
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 10px; flex-shrink: 0; }
         label { font-size: 8px; font-weight: bold; color: #888; text-transform: uppercase; }
         
@@ -74,9 +74,9 @@
     <div class="modal-content">
         <h2 style="margin-top:0; color:var(--vitrine-blue)">📖 Guia Rápido</h2>
         <p style="font-size:14px; color:#444;">
-            • Selecione o item e depois clique na cor desejada.<br>
-            • Use <b>SALVAR SVG</b> para enviar para produção.<br>
-            • No PC: Use <b>Delete</b> para apagar.
+            • Selecione o item e depois escolha a cor.<br>
+            • Para mover a tela no celular, arraste pelo fundo cinza.<br>
+            • Use <b>SALVAR SVG</b> para enviar para produção.
         </p>
         <button class="btn btn-add" style="width:100%; justify-content:center; padding:12px;" onclick="toggleGuide()">ENTENDI</button>
     </div>
@@ -110,7 +110,7 @@
             <div class="color-dot" style="background:#0000FF" onclick="mudarCor('#0000FF')"></div>
             <div class="color-dot" style="background:#000000" onclick="mudarCor('#000000')"></div>
             <div class="color-dot" style="background:#CCFF00" onclick="mudarCor('#CCFF00')"></div>
-            <input type="color" id="customColor" oninput="mudarCor(this.value)" style="width:24px; height:24px; border:none; background:none; cursor:pointer;">
+            <input type="color" oninput="mudarCor(this.value)" style="width:24px; height:24px; border:none; background:none; cursor:pointer;">
         </div>
     </div>
     <div class="group" style="border:none;">
@@ -146,30 +146,47 @@
         allowTouchScrolling: true 
     });
 
+    // Configuração visual dos controles (maiores para dedos no mobile)
+    fabric.Object.prototype.set({
+        transparentCorners: false,
+        cornerColor: '#1b31e0',
+        cornerStrokeColor: '#ffffff',
+        cornerSize: 28,
+        padding: 10
+    });
+
     canvas.selectionColor = 'rgba(27, 49, 224, 0.1)';
     canvas.selectionBorderColor = '#1b31e0';
-    canvas.selectionLineWidth = 1;
 
+    // Gerenciador de Scroll Inteligente
     canvas.on('mouse:down', function(opt) {
-        canvas.allowTouchScrolling = !opt.target;
+        if (!opt.target) {
+            canvas.allowTouchScrolling = true;
+        } else {
+            canvas.allowTouchScrolling = false;
+        }
+    });
+
+    canvas.on('mouse:up', function() {
+        canvas.allowTouchScrolling = true;
     });
 
     function enviarWhatsRepresentante() {
         const fone = "5518981212934";
-        const msg = encodeURIComponent("Olá, montei minha arte para minha pulseira personalizada no simulador de vocês!");
+        const msg = encodeURIComponent("Olá, montei minha arte no simulador!");
         window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${msg}`);
     }
 
     function enviarWhatsEcommerce() {
         const fone = "551836424452";
-        const msg = encodeURIComponent("Olá, fiz um pedido de pulseira personalizada e aqui está a minha arte! (Comprei pela plataforma: ________ )");
+        const msg = encodeURIComponent("Olá, comprei uma pulseira e aqui está minha arte!");
         window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${msg}`);
     }
 
     function addPulseira(tipo) {
         fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}`, (objects, options) => {
             const p = fabric.util.groupSVGElements(objects, options);
-            p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true });
+            p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true, selectable: true });
             p.scaleToWidth(tipo === 'adulto' ? 900 : 750);
             canvas.add(p); p.sendToBack(); reestruturarAmbiente();
         });
@@ -189,52 +206,38 @@
         canvas.setHeight(Math.max(650, currentY)); canvas.renderAll();
     }
 
-    // --- CORREÇÃO DA LÓGICA DE CORES ---
-    function mudarCor(corEscolhida) {
+    function mudarCor(c) {
         const selecionados = canvas.getActiveObjects();
-        
-        if (selecionados.length === 0) {
-            console.log("Nenhum item selecionado para colorir.");
-            return;
-        }
-
+        if (selecionados.length === 0) return;
         selecionados.forEach(obj => {
-            // Se for Texto
-            if (obj.type.includes('text')) {
-                obj.set('fill', corEscolhida);
-            } 
-            // Se for a Pulseira (SVG)
-            else if (obj.isPulseira) {
-                obj.getObjects().forEach(child => {
-                    child.set('fill', corEscolhida);
-                    child.set('stroke', corEscolhida);
-                });
-            }
-            // Se for Imagem (Aplica filtro de cor)
+            if (obj.type.includes('text')) obj.set('fill', c);
+            else if (obj.isPulseira) obj.getObjects().forEach(child => { child.set('fill', c); child.set('stroke', c); });
             else if (obj.type === 'image') {
-                obj.filters = [new fabric.Image.filters.BlendColor({
-                    color: corEscolhida,
-                    mode: 'tint',
-                    alpha: 1
-                })];
+                obj.filters = [new fabric.Image.filters.BlendColor({ color: c, mode: 'tint', alpha: 1 })];
                 obj.applyFilters();
             }
         });
-
-        canvas.renderAll();
-        saveHistory();
+        canvas.renderAll(); saveHistory();
     }
 
     function addTexto() { 
         const t = new fabric.IText('Clique aqui', { left: 400, top: 150, fontSize: 35, fill: '#333', fontFamily: 'Inter', fontWeight: 'bold' }); 
-        canvas.add(t); canvas.setActiveObject(t); 
+        canvas.add(t); canvas.setActiveObject(t); canvas.renderAll();
     }
 
     function uploadImg(input) { 
         if (input.files[0]) { 
             const r = new FileReader(); 
             r.onload = (e) => { 
-                fabric.Image.fromURL(e.target.result, img => { img.scaleToWidth(120); canvas.add(img); canvas.setActiveObject(img); }); 
+                fabric.Image.fromURL(e.target.result, img => { 
+                    img.scaleToWidth(150);
+                    img.set({ left: 400, top: 200 });
+                    canvas.add(img);
+                    img.setCoords();
+                    canvas.setActiveObject(img); 
+                    canvas.renderAll(); // Força aparição imediata
+                    saveHistory();
+                }); 
             }; 
             r.readAsDataURL(input.files[0]); 
         } 
@@ -242,7 +245,7 @@
 
     window.addEventListener('keydown', (e) => {
         const activeObjects = canvas.getActiveObjects();
-        if (!activeObjects.length || activeObjects[0].isEditing) return;
+        if (!activeObjects.length || (activeObjects[0].isEditing)) return;
         const moveStep = 2;
         switch (e.key) {
             case 'Delete':
@@ -261,7 +264,7 @@
         ativos.forEach(o => {
             if (o.isPulseira) {
                 if (pulseirasAtuais.length > 1) canvas.remove(o);
-                else alert("Mantenha pelo menos uma pulseira na tela.");
+                else alert("Mantenha pelo menos uma pulseira.");
             } else canvas.remove(o);
         });
         canvas.discardActiveObject(); reestruturarAmbiente();
@@ -280,18 +283,14 @@
     canvas.on('object:added', saveHistory); canvas.on('object:modified', saveHistory); canvas.on('object:removed', saveHistory);
 
     function baixarPNG() { 
-        const l = document.createElement('a'); 
-        l.download = 'minha-pulseira.png'; 
-        l.href = canvas.toDataURL({ multiplier: 3 }); 
-        l.click(); 
+        const l = document.createElement('a'); l.download = 'minha-pulseira.png'; 
+        l.href = canvas.toDataURL({ multiplier: 3 }); l.click(); 
     }
 
     function exportarSVG() { 
         const b = new Blob([canvas.toSVG()], { type: 'image/svg+xml' }); 
-        const l = document.createElement('a'); 
-        l.href = URL.createObjectURL(b); 
-        l.download = 'projeto-impressao.svg'; 
-        l.click(); 
+        const l = document.createElement('a'); l.href = URL.createObjectURL(b); 
+        l.download = 'projeto-impressao.svg'; l.click(); 
     }
 
     function toggleGuide() { const m = document.getElementById('guideModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
