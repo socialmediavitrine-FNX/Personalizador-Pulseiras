@@ -21,21 +21,44 @@
         canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 4px; }
         .footer-actions { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px; border-top: 2px solid #ddd; display: flex; justify-content: center; gap: 6px; z-index: 40; }
         .btn-exp { border: none; padding: 10px 4px; font-size: 10px; font-weight: bold; border-radius: 6px; color: white; cursor: pointer; flex: 1; text-align: center; }
+        
+        /* Estilo do Alerta/Guia */
+        #guideOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .guide-card { background: white; padding: 25px; border-radius: 12px; max-width: 400px; width: 100%; text-align: center; }
+        .guide-card h2 { color: var(--vitrine-blue); margin-top: 0; }
+        .guide-card p { font-size: 14px; color: #444; line-height: 1.5; }
+        .guide-card ul { text-align: left; font-size: 13px; color: #666; }
+        .btn-close-guide { background: var(--vitrine-blue); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; margin-top: 15px; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
 
+<div id="guideOverlay">
+    <div class="guide-card">
+        <h2>🚀 Guia Rápido</h2>
+        <p>Crie sua pulseira personalizada agora!</p>
+        <ul>
+            <li>✨ <b>Fotos leves:</b> Use imagens pequenas (ícones). Se sua foto for pesada, diminua em <a href="https://www.iloveimg.com/pt/redimensionar-imagem" target="_blank" style="color:blue">iloveimg.com</a> para não travar o celular.</li>
+            <li>🎨 <b>Cores:</b> Selecione o item e clique na cor desejada.</li>
+            <li>🔄 <b>Movimento:</b> Arraste o <b>fundo cinza</b> para navegar pela pulseira.</li>
+        </ul>
+        <button class="btn-close-guide" onclick="fecharGuia()">ENTENDI, VAMOS CRIAR!</button>
+    </div>
+</div>
+
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
-    <div style="font-size: 10px; font-weight: bold;">VITRINE v1.4</div>
+    <div style="font-size: 10px; font-weight: bold; cursor:pointer;" onclick="abrirGuia()">❔ AJUDA</div>
 </div>
 
 <div class="toolbar">
     <div class="group"><label>1. Modelos</label><div style="display:flex; gap:4px;"><button class="btn btn-add" onclick="addPulseira('adulto')">ADULTO</button><button class="btn btn-add" onclick="addPulseira('infantil')" style="background:#6f42c1">INFANTIL</button></div></div>
     <div class="group"><label>2. Criar</label><div style="display:flex; gap:4px;"><button class="btn" onclick="addTexto()">+ TEXTO</button><button class="btn" onclick="document.getElementById('imgInp').click()">+ FOTO</button><input type="file" id="imgInp" hidden onchange="uploadImg(this)"></div></div>
     <div class="group"><label>3. Cores</label><div style="display:flex; gap:4px; align-items:center;">
-        <div class="color-dot" style="background:#000" onclick="mudarCor('#000')"></div>
-        <div class="color-dot" style="background:#CCFF00" onclick="mudarCor('#CCFF00')"></div>
+        <div class="color-dot" style="background:#000" title="Preto" onclick="mudarCor('#000')"></div>
+        <div class="color-dot" style="background:#0000FF" title="Azul" onclick="mudarCor('#0000FF')"></div>
+        <div class="color-dot" style="background:#FF1493" title="Pink" onclick="mudarCor('#FF1493')"></div>
+        <div class="color-dot" style="background:#CCFF00" title="Neon" onclick="mudarCor('#CCFF00')"></div>
         <input type="color" oninput="mudarCor(this.value)" style="width:24px; height:24px; border:none; background:none; cursor:pointer;">
     </div></div>
     <div class="group" style="border:none;"><label>4. Ações</label><div style="display:flex; gap:4px;"><button class="btn" onclick="undo()">↩</button><button class="btn" style="color:#ef4444" onclick="removerSelecionado()">🗑</button></div></div>
@@ -52,14 +75,17 @@
     const canvas = new fabric.Canvas('c', { 
         width: 1000, height: 650, backgroundColor: '#ffffff', 
         selection: true, allowTouchScrolling: true,
-        perPixelTargetFind: true,
-        targetFindTolerance: 10
+        perPixelTargetFind: true, targetFindTolerance: 10
     });
 
     fabric.Object.prototype.set({
         transparentCorners: false, cornerColor: '#1b31e0', cornerSize: 32, padding: 15,
         touchCornerSize: 45, lockScalingFlip: true
     });
+
+    // --- FUNÇÕES DO GUIA ---
+    function fecharGuia() { document.getElementById('guideOverlay').style.display = 'none'; }
+    function abrirGuia() { document.getElementById('guideOverlay').style.display = 'flex'; }
 
     canvas.on('mouse:down', (opt) => {
         if (!opt.target) {
@@ -74,6 +100,10 @@
 
     function uploadImg(input) { 
         if (input.files[0]) { 
+            // ALERTA DE PESO DE IMAGEM
+            if (input.files[0].size > 1024 * 1024) { 
+                alert("Essa imagem é muito pesada! Se o celular travar, reduza o tamanho dela no site iLoveIMG."); 
+            }
             const r = new FileReader(); 
             r.onload = (e) => { 
                 fabric.Image.fromURL(e.target.result, (img) => { 
@@ -91,15 +121,7 @@
     function addPulseira(tipo) {
         fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}`, (objects, options) => {
             const p = fabric.util.groupSVGElements(objects, options);
-            p.set({ 
-                isPulseira: true, 
-                tipoRef: tipo, 
-                hasControls: false, // Sem quadrados de redimensionar
-                lockMovementX: true, // Não move pros lados
-                lockMovementY: true, // Não move pra cima/baixo
-                selectable: true,    // PRECISA SER TRUE PARA MUDAR COR
-                hoverCursor: 'pointer' 
-            });
+            p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true, selectable: true, hoverCursor: 'pointer' });
             p.scaleToWidth(tipo === 'adulto' ? 900 : 750);
             canvas.add(p); p.sendToBack(); reestruturarAmbiente();
             saveToLocalStorage();
@@ -121,25 +143,15 @@
     }
 
     function mudarCor(c) {
-        const ativos = canvas.getActiveObjects();
-        if (ativos.length === 0) return;
-        
-        ativos.forEach(obj => {
-            if (obj.type.includes('text')) {
-                obj.set('fill', c);
-            } else if (obj.isPulseira) {
-                // Pintar cada parte do grupo da pulseira
-                obj.getObjects().forEach(ch => {
-                    ch.set('fill', c);
-                    ch.set('stroke', c);
-                });
-            } else if (obj.type === 'image') {
+        canvas.getActiveObjects().forEach(obj => {
+            if (obj.type.includes('text')) obj.set('fill', c);
+            else if (obj.isPulseira) obj.getObjects().forEach(ch => { ch.set('fill', c); ch.set('stroke', c); });
+            else if (obj.type === 'image') {
                 obj.filters = [new fabric.Image.filters.BlendColor({ color: c, mode: 'tint', alpha: 1 })];
                 obj.applyFilters();
             }
         });
-        canvas.requestRenderAll(); 
-        saveToLocalStorage();
+        canvas.requestRenderAll(); saveToLocalStorage();
     }
 
     function addTexto() { 
