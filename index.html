@@ -14,7 +14,7 @@
         .toolbar { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; overflow-x: auto; z-index: 20; touch-action: pan-x; }
         .group { display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 10px; flex-shrink: 0; }
         label { font-size: 8px; font-weight: bold; color: #888; text-transform: uppercase; }
-        .btn { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; background: white; font-weight: bold; font-size: 10px; display: flex; align-items: center; gap: 4px; }
+        .btn { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; background: white; font-weight: bold; font-size: 10px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
         .btn-add { background: var(--primary); color: white; border: none; }
         .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.2); }
         .workspace { flex: 1; overflow: auto !important; padding: 20px; background: #475569; display: block; touch-action: pan-x pan-y !important; }
@@ -27,7 +27,7 @@
 
 <div class="brand-header">
     <div class="brand-logo"><img src="logo.png" alt="Vitrine Acessórios"></div>
-    <div style="font-size: 10px; font-weight: bold;">VITRINE v1.3</div>
+    <div style="font-size: 10px; font-weight: bold;">VITRINE v1.4</div>
 </div>
 
 <div class="toolbar">
@@ -36,7 +36,7 @@
     <div class="group"><label>3. Cores</label><div style="display:flex; gap:4px; align-items:center;">
         <div class="color-dot" style="background:#000" onclick="mudarCor('#000')"></div>
         <div class="color-dot" style="background:#CCFF00" onclick="mudarCor('#CCFF00')"></div>
-        <input type="color" oninput="mudarCor(this.value)" style="width:24px; height:24px; border:none; background:none;">
+        <input type="color" oninput="mudarCor(this.value)" style="width:24px; height:24px; border:none; background:none; cursor:pointer;">
     </div></div>
     <div class="group" style="border:none;"><label>4. Ações</label><div style="display:flex; gap:4px;"><button class="btn" onclick="undo()">↩</button><button class="btn" style="color:#ef4444" onclick="removerSelecionado()">🗑</button></div></div>
 </div>
@@ -52,16 +52,15 @@
     const canvas = new fabric.Canvas('c', { 
         width: 1000, height: 650, backgroundColor: '#ffffff', 
         selection: true, allowTouchScrolling: true,
-        perPixelTargetFind: true, // Crucial: Só seleciona se tocar no desenho real
-        targetFindTolerance: 15
+        perPixelTargetFind: true,
+        targetFindTolerance: 10
     });
 
     fabric.Object.prototype.set({
         transparentCorners: false, cornerColor: '#1b31e0', cornerSize: 32, padding: 15,
-        touchCornerSize: 45, lockScalingFlip: true // Impede bugs de inversão no touch
+        touchCornerSize: 45, lockScalingFlip: true
     });
 
-    // --- LOGICA DE BLOQUEIO DE FOLLOW ---
     canvas.on('mouse:down', (opt) => {
         if (!opt.target) {
             canvas.allowTouchScrolling = true;
@@ -71,30 +70,16 @@
         }
     });
 
-    canvas.on('mouse:up', () => {
-        canvas.allowTouchScrolling = true;
-        saveToLocalStorage();
-    });
+    canvas.on('mouse:up', () => { canvas.allowTouchScrolling = true; saveToLocalStorage(); });
 
-    // --- UPLOAD TURBINADO PARA IMAGENS ---
     function uploadImg(input) { 
         if (input.files[0]) { 
             const r = new FileReader(); 
             r.onload = (e) => { 
                 fabric.Image.fromURL(e.target.result, (img) => { 
-                    img.set({
-                        left: 400, top: 200,
-                        perPixelTargetFind: true, // Garante que bordas vazias não puxem o toque
-                        originX: 'center', originY: 'center',
-                        hasRotatingPoint: true
-                    });
+                    img.set({ left: 400, top: 200, perPixelTargetFind: true, originX: 'center', originY: 'center' });
                     img.scaleToWidth(180);
-                    canvas.add(img);
-                    img.setCoords();
-                    canvas.setActiveObject(img);
-                    
-                    // Renderização forçada em 2 tempos
-                    canvas.requestRenderAll();
+                    canvas.add(img); img.setCoords(); canvas.setActiveObject(img);
                     setTimeout(() => { canvas.requestRenderAll(); saveToLocalStorage(); }, 200);
                 }); 
             }; 
@@ -106,7 +91,15 @@
     function addPulseira(tipo) {
         fabric.loadSVGFromURL(`${tipo === 'adulto' ? 'pulseira-adulto.svg' : 'pulseira-infantil.svg'}`, (objects, options) => {
             const p = fabric.util.groupSVGElements(objects, options);
-            p.set({ isPulseira: true, tipoRef: tipo, hasControls: false, lockMovementX: true, lockMovementY: true, selectable: false });
+            p.set({ 
+                isPulseira: true, 
+                tipoRef: tipo, 
+                hasControls: false, // Sem quadrados de redimensionar
+                lockMovementX: true, // Não move pros lados
+                lockMovementY: true, // Não move pra cima/baixo
+                selectable: true,    // PRECISA SER TRUE PARA MUDAR COR
+                hoverCursor: 'pointer' 
+            });
             p.scaleToWidth(tipo === 'adulto' ? 900 : 750);
             canvas.add(p); p.sendToBack(); reestruturarAmbiente();
             saveToLocalStorage();
@@ -128,15 +121,25 @@
     }
 
     function mudarCor(c) {
-        canvas.getActiveObjects().forEach(obj => {
-            if (obj.type.includes('text')) obj.set('fill', c);
-            else if (obj.isPulseira) obj.getObjects().forEach(ch => { ch.set('fill', c); ch.set('stroke', c); });
-            else if (obj.type === 'image') {
+        const ativos = canvas.getActiveObjects();
+        if (ativos.length === 0) return;
+        
+        ativos.forEach(obj => {
+            if (obj.type.includes('text')) {
+                obj.set('fill', c);
+            } else if (obj.isPulseira) {
+                // Pintar cada parte do grupo da pulseira
+                obj.getObjects().forEach(ch => {
+                    ch.set('fill', c);
+                    ch.set('stroke', c);
+                });
+            } else if (obj.type === 'image') {
                 obj.filters = [new fabric.Image.filters.BlendColor({ color: c, mode: 'tint', alpha: 1 })];
                 obj.applyFilters();
             }
         });
-        canvas.requestRenderAll(); saveToLocalStorage();
+        canvas.requestRenderAll(); 
+        saveToLocalStorage();
     }
 
     function addTexto() { 
@@ -153,7 +156,7 @@
     }
 
     function saveToLocalStorage() {
-        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable', 'hasControls']));
+        const json = JSON.stringify(canvas.toJSON(['isPulseira', 'tipoRef', 'isLegenda', 'selectable', 'hasControls', 'lockMovementX', 'lockMovementY']));
         localStorage.setItem('vitrine_simulador_save', json);
     }
 
@@ -170,7 +173,7 @@
     }
 
     let undoStack = [];
-    function undo() { if (undoStack.length > 1) { undoStack.pop(); const state = undoStack[undoStack.length-1]; canvas.loadFromJSON(state, () => { canvas.renderAll(); }); } }
+    function undo() { if (undoStack.length > 1) { undoStack.pop(); canvas.loadFromJSON(undoStack[undoStack.length-1], () => canvas.renderAll()); } }
     canvas.on('object:modified', () => { undoStack.push(JSON.stringify(canvas.toJSON())); });
 
     function enviarWhatsRepresentante() { window.open(`https://api.whatsapp.com/send?phone=5518981212934&text=Olá!`); }
