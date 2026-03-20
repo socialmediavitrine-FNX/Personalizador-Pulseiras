@@ -195,5 +195,86 @@
 
     window.onload = () => { if (!loadFromLocalStorage()) addPulseira('adulto'); };
 </script>
+    <style>
+    /* Esconde no PC, aparece só no Celular */
+    #joypad-navegacao { display: none; }
+
+    @media (max-width: 768px) {
+        #joypad-navegacao {
+            position: fixed;
+            bottom: 150px; /* Ajustado para ficar acima dos seus botões de ação */
+            right: 15px;
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: grid;
+            grid-template-areas: 
+                ". up ."
+                "left center right"
+                ". down .";
+            gap: 5px;
+            padding: 10px;
+            z-index: 99999;
+            touch-action: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .joy-btn {
+            background: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            color: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .joy-btn:active { background: #007bff; color: white; transform: scale(0.9); }
+
+        .up { grid-area: up; }
+        .left { grid-area: left; }
+        .right { grid-area: right; }
+        .down { grid-area: down; }
+
+        .joy-label {
+            grid-area: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            align-self: center;
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+    }
+</style>
+
+<div id="joypad-navegacao">
+    <button type="button" class="joy-btn up" onclick="moverTelaManual(0, -80)">▲</button>
+    <button type="button" class="joy-btn left" onclick="moverTelaManual(-80, 0)">◀</button>
+    <button type="button" class="joy-btn right" onclick="moverTelaManual(80, 0)">▶</button>
+    <button type="button" class="joy-btn down" onclick="moverTelaManual(0, 80)">▼</button>
+    <span class="joy-label">Mover</span>
+</div>
+
+<script>
+    function moverTelaManual(x, y) {
+        // No seu caso, o elemento que tem o scroll é a div com classe "workspace"
+        const container = document.querySelector('.workspace');
+        if (container) {
+            container.scrollBy({
+                left: x,
+                top: y,
+                behavior: 'smooth'
+            });
+        }
+    }
+</script>
 </body>
 </html>
