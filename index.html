@@ -61,7 +61,14 @@
         <div class="color-dot" style="background:#CCFF00" title="Neon" onclick="mudarCor('#CCFF00')"></div>
         <input type="color" oninput="mudarCor(this.value)" style="width:24px; height:24px; border:none; background:none; cursor:pointer;">
     </div></div>
-    <div class="group" style="border:none;"><label>4. Ações</label><div style="display:flex; gap:4px;"><button class="btn" onclick="undo()">↩</button><button class="btn" style="color:#ef4444" onclick="removerSelecionado()">🗑</button></div></div>
+    <div class="group" style="border:none;">
+    <label>4. Ações</label>
+    <div style="display:flex; gap:4px;">
+        <button class="btn" onclick="undo()">↩</button>
+        <button class="btn" title="Resetar Cor" onclick="resetarCores()">🎨✖</button> 
+        <button class="btn" style="color:#ef4444" onclick="removerSelecionado()">🗑</button>
+    </div>
+</div>
 </div>
 
 <div class="workspace"><canvas id="c"></canvas></div>
