@@ -154,6 +154,30 @@
         canvas.requestRenderAll(); saveToLocalStorage();
     }
 
+    function resetarCores() {
+    const objetosAtivos = canvas.getActiveObjects();
+
+    if (objetosAtivos.length === 0) {
+        alert("Selecione um item para resetar a cor!");
+        return;
+    }
+
+    objetosAtivos.forEach(obj => {
+        // 1. Se for texto, volta para o preto padrão
+        if (obj.type.includes('text')) {
+            obj.set('fill', '#333333'); 
+        } 
+        // 2. Se for imagem, removemos todos os filtros de cor
+        else if (obj.type === 'image') {
+            obj.filters = []; // Esvazia o array de filtros
+            obj.applyFilters(); // Aplica a mudança
+        }
+    });
+
+    canvas.requestRenderAll();
+    saveToLocalStorage();
+}
+
     function addTexto() { 
         const t = new fabric.IText('Clique aqui', { left: 400, top: 150, fontSize: 35, fill: '#333', fontFamily: 'Inter', fontWeight: 'bold' }); 
         canvas.add(t); canvas.setActiveObject(t); canvas.requestRenderAll();
